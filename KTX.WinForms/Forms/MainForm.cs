@@ -129,6 +129,13 @@ public class MainForm : Form, IThemable
             return;
         }
 
+        if (key == "Contracts")
+        {
+            var contractsView = _serviceProvider.GetRequiredService<Views.ContractsView>();
+            _contentPanel.Controls.Add(contractsView);
+            return;
+        }
+
         if (key == "Settings")
         {
             var settingsView = _serviceProvider.GetRequiredService<Views.SettingsView>();

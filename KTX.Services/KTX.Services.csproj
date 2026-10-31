@@ -1,8 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\KTX.Domain\KTX.Domain.csproj" />
     <ProjectReference Include="..\KTX.Data\KTX.Data.csproj" />
+    <ProjectReference Include="..\KTX.Infrastructure\KTX.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
