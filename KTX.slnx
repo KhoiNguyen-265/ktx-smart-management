@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="KTX.Data/KTX.Data.csproj" />
+  <Project Path="KTX.Domain/KTX.Domain.csproj" />
+  <Project Path="KTX.Infrastructure/KTX.Infrastructure.csproj" />
+  <Project Path="KTX.Services/KTX.Services.csproj" />
+  <Project Path="KTX.Tests/KTX.Tests.csproj" />
+  <Project Path="KTX.UI/KTX.UI.csproj" />
+  <Project Path="KTX.WinForms/KTX.WinForms.csproj" />
+</Solution>
