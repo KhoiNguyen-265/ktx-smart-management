@@ -48,7 +48,8 @@ static class Program
         // BẮT BUỘC: Sử dụng IDbContextFactory cho WinForms
         services.AddDbContextFactory<KtxDbContext>(options =>
         {
-            options.UseSqlServer(connectionString);
+            options.UseSqlServer(connectionString)
+                   .AddInterceptors(new KTX.Data.Interceptors.AuditSaveChangesInterceptor());
         });
 
         // Đăng ký Services
@@ -57,7 +58,8 @@ static class Program
         services.AddScoped<IAuthService, AuthService>();
 
         // Đăng ký Forms
-        services.AddTransient<Form1>();
+        services.AddTransient<Forms.LoginForm>();
+        services.AddTransient<Forms.MainForm>();
 
         ServiceProvider = services.BuildServiceProvider();
 
@@ -74,8 +76,8 @@ static class Program
             MessageBox.Show($"Không thể khởi tạo cơ sở dữ liệu:\n{ex.Message}", "Cảnh báo CSDL", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
-        // 6. Khởi chạy Form chính
-        var mainForm = ServiceProvider.GetRequiredService<Form1>();
-        Application.Run(mainForm);
+        // 6. Khởi chạy Form Đăng nhập đầu tiên
+        var loginForm = ServiceProvider.GetRequiredService<Forms.LoginForm>();
+        Application.Run(loginForm);
     }
 }
