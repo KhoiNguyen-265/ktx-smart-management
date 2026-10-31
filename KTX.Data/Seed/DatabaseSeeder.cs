@@ -12,9 +12,9 @@ public static class DatabaseSeeder
         // 1. Seed Roles & Users
         if (!await db.VaiTros.AnyAsync())
         {
-            var adminRole = new VaiTro { Id = 1, TenVaiTro = "Admin" };
-            var managerRole = new VaiTro { Id = 2, TenVaiTro = "QuanLy" };
-            var accountantRole = new VaiTro { Id = 3, TenVaiTro = "KeToan" };
+            var adminRole = new VaiTro { TenVaiTro = "Admin" };
+            var managerRole = new VaiTro { TenVaiTro = "QuanLy" };
+            var accountantRole = new VaiTro { TenVaiTro = "KeToan" };
 
             db.VaiTros.AddRange(adminRole, managerRole, accountantRole);
             await db.SaveChangesAsync();
@@ -25,7 +25,7 @@ public static class DatabaseSeeder
                 TenDangNhap = "admin",
                 MatKhauHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
                 HoTen = "Quản trị viên Hệ thống",
-                MaVaiTro = 1,
+                MaVaiTro = adminRole.Id,
                 HoatDong = true
             };
             var managerUser = new NguoiDung
@@ -33,7 +33,7 @@ public static class DatabaseSeeder
                 TenDangNhap = "quanly",
                 MatKhauHash = BCrypt.Net.BCrypt.HashPassword("quanly123"),
                 HoTen = "Nguyễn Văn Quản",
-                MaVaiTro = 2,
+                MaVaiTro = managerRole.Id,
                 HoatDong = true
             };
             var accountantUser = new NguoiDung
@@ -41,7 +41,7 @@ public static class DatabaseSeeder
                 TenDangNhap = "ketoan",
                 MatKhauHash = BCrypt.Net.BCrypt.HashPassword("ketoan123"),
                 HoTen = "Trần Thị Thu",
-                MaVaiTro = 3,
+                MaVaiTro = accountantRole.Id,
                 HoatDong = true
             };
 

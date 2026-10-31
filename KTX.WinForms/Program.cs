@@ -95,7 +95,8 @@ static class Program
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Không thể khởi tạo cơ sở dữ liệu:\n{ex.Message}", "Cảnh báo CSDL", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            var detail = ex.InnerException != null ? $"{ex.Message}\nChi tiết: {ex.InnerException.Message}" : ex.Message;
+            MessageBox.Show($"Không thể khởi tạo cơ sở dữ liệu:\n{detail}", "Cảnh báo CSDL", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         // 6. Khởi chạy Form Đăng nhập đầu tiên
