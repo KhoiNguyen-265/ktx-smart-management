@@ -136,6 +136,27 @@ public class MainForm : Form, IThemable
             return;
         }
 
+        if (key == "Meters")
+        {
+            var metersView = _serviceProvider.GetRequiredService<Views.UtilityMetersView>();
+            _contentPanel.Controls.Add(metersView);
+            return;
+        }
+
+        if (key == "Invoices")
+        {
+            var invoicesView = _serviceProvider.GetRequiredService<Views.InvoicesView>();
+            _contentPanel.Controls.Add(invoicesView);
+            return;
+        }
+
+        if (key == "Reconcile")
+        {
+            var reconcileView = _serviceProvider.GetRequiredService<Views.ReconciliationView>();
+            _contentPanel.Controls.Add(reconcileView);
+            return;
+        }
+
         if (key == "Settings")
         {
             var settingsView = _serviceProvider.GetRequiredService<Views.SettingsView>();

@@ -50,5 +50,6 @@ public enum TrangThaiGiaoDich
 {
     DaKhop = 1,
     CanXuLy = 2,
-    BoQua = 3
+    BoQua = 3,
+    MotPhan = 4
 }
