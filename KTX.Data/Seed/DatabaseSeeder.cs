@@ -594,5 +594,92 @@ public static class DatabaseSeeder
             db.KhoanThuTienPhongs.AddRange(feeList);
             await db.SaveChangesAsync();
         }
+
+        // 13. Seed Giao dịch sao kê ngân hàng mẫu cho phân hệ Đối soát (sinh động, đầy đủ 3 trạng thái)
+        if (!await db.GiaoDichNganHangs.AnyAsync())
+        {
+            var txList = new List<GiaoDichNganHang>();
+            decimal balance = 185000000m;
+
+            // 13.1 Giao dịch khớp chuẩn hóa đơn điện nước (10 giao dịch)
+            var paidInvoices = await db.HoaDonDienNuocs.Include(h => h.Phong).Where(h => h.TrangThai == TrangThaiHoaDon.DaThanhToan).Take(10).ToListAsync();
+            int txIndex = 1;
+            foreach (var inv in paidInvoices)
+            {
+                balance += inv.TongTien;
+                txList.Add(new GiaoDichNganHang
+                {
+                    NgayGD = DateTime.Now.AddDays(-txIndex).AddHours(-2),
+                    SoTien = inv.TongTien,
+                    NoiDungGoc = $"SINH VIEN PHONG {inv.Phong.MaPhong} CK TIEN DIEN NUOC {inv.MaThanhToan}",
+                    MaGiaoDich = $"FT2610{txIndex:D4}",
+                    SoDuSau = balance,
+                    HashSaoKe = $"HASH_SEED_DN_{inv.Id}_{txIndex:D4}",
+                    TrangThaiKhop = TrangThaiGiaoDich.DaKhop,
+                    FileNguon = "SaoKe_MBBank_T10_2026.xlsx",
+                    NgayImport = DateTime.Now.AddDays(-txIndex)
+                });
+                txIndex++;
+            }
+
+            // 13.2 Giao dịch khớp chuẩn tiền phòng (8 giao dịch)
+            var paidFees = await db.KhoanThuTienPhongs.Include(k => k.HopDong).ThenInclude(h => h.SinhVien).Where(k => k.TrangThai == TrangThaiHoaDon.DaThanhToan).Take(8).ToListAsync();
+            foreach (var fee in paidFees)
+            {
+                balance += fee.PhaiThu;
+                txList.Add(new GiaoDichNganHang
+                {
+                    NgayGD = DateTime.Now.AddDays(-txIndex % 5).AddHours(-4),
+                    SoTien = fee.PhaiThu,
+                    NoiDungGoc = $"SV {fee.HopDong.SinhVien.MSSV} NOP TIEN PHONG {fee.MaThanhToan}",
+                    MaGiaoDich = $"FT2610{txIndex:D4}",
+                    SoDuSau = balance,
+                    HashSaoKe = $"HASH_SEED_TP_{fee.Id}_{txIndex:D4}",
+                    TrangThaiKhop = TrangThaiGiaoDich.DaKhop,
+                    FileNguon = "SaoKe_MBBank_T10_2026.xlsx",
+                    NgayImport = DateTime.Now.AddDays(-1)
+                });
+                txIndex++;
+            }
+
+            // 13.3 Giao dịch khớp một phần (2 giao dịch)
+            var pendingInv = await db.HoaDonDienNuocs.Include(h => h.Phong).Where(h => h.TrangThai != TrangThaiHoaDon.DaThanhToan).Take(2).ToListAsync();
+            foreach (var inv in pendingInv)
+            {
+                decimal partial = Math.Round(inv.TongTien * 0.5m, 0);
+                balance += partial;
+                txList.Add(new GiaoDichNganHang
+                {
+                    NgayGD = DateTime.Now.AddDays(-2),
+                    SoTien = partial,
+                    NoiDungGoc = $"PHONG {inv.Phong.MaPhong} DONG MOT PHAN {inv.MaThanhToan}",
+                    MaGiaoDich = $"FT2610{txIndex:D4}",
+                    SoDuSau = balance,
+                    HashSaoKe = $"HASH_SEED_PART_{inv.Id}_{txIndex:D4}",
+                    TrangThaiKhop = TrangThaiGiaoDich.MotPhan,
+                    FileNguon = "SaoKe_MBBank_T10_2026.xlsx",
+                    NgayImport = DateTime.Now
+                });
+                txIndex++;
+            }
+
+            // 13.4 Giao dịch cần xử lý (không rõ nội dung / sai cú pháp)
+            balance += 350000m;
+            txList.Add(new GiaoDichNganHang
+            {
+                NgayGD = DateTime.Now.AddDays(-1),
+                SoTien = 350000m,
+                NoiDungGoc = "NGUYEN VAN HOANG CHUYEN TIEN CHO BAN KHONG RO NOIDUNG",
+                MaGiaoDich = $"FT2610{txIndex:D4}",
+                SoDuSau = balance,
+                HashSaoKe = $"HASH_SEED_UNMATCH_{txIndex:D4}",
+                TrangThaiKhop = TrangThaiGiaoDich.CanXuLy,
+                FileNguon = "SaoKe_MBBank_T10_2026.xlsx",
+                NgayImport = DateTime.Now
+            });
+
+            db.GiaoDichNganHangs.AddRange(txList);
+            await db.SaveChangesAsync();
+        }
     }
 }

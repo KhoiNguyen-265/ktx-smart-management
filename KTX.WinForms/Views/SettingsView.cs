@@ -75,10 +75,10 @@ public class SettingsView : UserControl
             Font = new Font("Segoe UI", 10.5F, FontStyle.Regular)
         };
 
-        _tabWeights = new TabPage("⚡ Trọng số Xếp phòng (AI)");
-        _tabBank = new TabPage("💳 Tài chính & VietQR");
-        _tabPriorities = new TabPage("⭐ Diện ưu tiên");
-        _tabProvinces = new TabPage("📍 Danh mục 34 Tỉnh thành");
+        _tabWeights = new TabPage("Trọng số Xếp phòng (AI)");
+        _tabBank = new TabPage("Tài chính & VietQR");
+        _tabPriorities = new TabPage("Diện ưu tiên");
+        _tabProvinces = new TabPage("Danh mục 34 Tỉnh thành");
 
         _tabMain.TabPages.Add(_tabWeights);
         _tabMain.TabPages.Add(_tabBank);
@@ -94,6 +94,12 @@ public class SettingsView : UserControl
         this.Controls.Add(headerPanel);
 
         this.Load += async (s, e) => await LoadDataAsync();
+    }
+
+    protected override async void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+        await LoadDataAsync();
     }
 
     private void BuildWeightsTab()
@@ -147,9 +153,9 @@ public class SettingsView : UserControl
 
         var btnSaveWeights = new KButton
         {
-            Text = "💾 Lưu Trọng Số Xếp Phòng",
+            Text = "Lưu trọng số xếp phòng",
             Style = KButtonStyle.Primary,
-            Size = new Size(220, 40)
+            Size = new Size(200, 40)
         };
         btnSaveWeights.Click += async (s, e) => await SaveWeightsAsync();
 
@@ -191,12 +197,12 @@ public class SettingsView : UserControl
         decimal sum = _nudWPrio.Value + _nudWDist.Value + _nudWCourse.Value + _nudWPref.Value + _nudWRoommate.Value;
         if (Math.Abs(sum - 1.0m) <= 0.01m)
         {
-            _lblWeightTotal.Text = $"Tổng trọng số: {sum:F2} (100%) ✓ Hợp lệ";
+            _lblWeightTotal.Text = $"Tổng trọng số: {sum:F2} (100%) - Hợp lệ";
             _lblWeightTotal.ForeColor = ThemeManager.Current.Success;
         }
         else
         {
-            _lblWeightTotal.Text = $"Tổng trọng số: {sum:F2} ⚠️ Cảnh báo: Tổng các trọng số nên bằng 1.00";
+            _lblWeightTotal.Text = $"Tổng trọng số: {sum:F2} (Cảnh báo: Tổng các trọng số nên bằng 1.00)";
             _lblWeightTotal.ForeColor = ThemeManager.Current.Warning;
         }
     }
@@ -244,9 +250,9 @@ public class SettingsView : UserControl
 
         var btnSaveBank = new KButton
         {
-            Text = "💾 Lưu Cấu Hình Ngân Hàng & VAT",
+            Text = "Lưu cấu hình ngân hàng & VAT",
             Style = KButtonStyle.Primary,
-            Size = new Size(260, 40)
+            Size = new Size(240, 40)
         };
         btnSaveBank.Click += async (s, e) => await SaveBankAsync();
 

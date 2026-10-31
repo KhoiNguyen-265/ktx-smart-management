@@ -107,8 +107,8 @@ public class RoomsView : UserControl, IThemable
 
         var lblLegend = new Label
         {
-            Text = "Chú thích:  🟢 Trống hoàn toàn   🟠 Còn chỗ trống   🔴 Đã đầy   ⚪ Đang bảo trì",
-            Font = UIHelper.GetFont(9f, FontStyle.Italic),
+            Text = "Chú thích màu sắc:   ● Trống hoàn toàn (Xanh)     ● Còn chỗ trống (Cam)     ● Đã đầy (Đỏ)     ● Đang bảo trì (Xám)",
+            Font = UIHelper.GetFont(9f, FontStyle.Regular),
             Location = new Point(0, 8),
             AutoSize = true
         };
@@ -159,6 +159,15 @@ public class RoomsView : UserControl, IThemable
         ApplyTheme(ThemeManager.Current);
 
         Load += async (s, e) => await InitializeDataAsync();
+    }
+
+    protected override async void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+        if (_buildings.Count == 0)
+        {
+            await InitializeDataAsync();
+        }
     }
 
     private async Task InitializeDataAsync()

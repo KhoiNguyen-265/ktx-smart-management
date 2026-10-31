@@ -81,6 +81,15 @@ public class AllocationWizardView : UserControl, IThemable
         Load += async (s, e) => await InitializeDataAsync();
     }
 
+    protected override async void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+        if (_batches.Count == 0)
+        {
+            await InitializeDataAsync();
+        }
+    }
+
     private void InitializeComponents()
     {
         Dock = DockStyle.Fill;
@@ -105,7 +114,7 @@ public class AllocationWizardView : UserControl, IThemable
 
         _btnBack = new KButton
         {
-            Text = "◀ Quay lại",
+            Text = "Quay lại",
             Style = KButtonStyle.Secondary,
             Size = new Size(110, 36),
             Location = new Point(ClientSize.Width - 250, 12),
@@ -116,7 +125,7 @@ public class AllocationWizardView : UserControl, IThemable
 
         _btnNext = new KButton
         {
-            Text = "Tiếp theo ▶",
+            Text = "Tiếp theo",
             Style = KButtonStyle.Primary,
             Size = new Size(120, 36),
             Location = new Point(ClientSize.Width - 130, 12),
@@ -172,18 +181,18 @@ public class AllocationWizardView : UserControl, IThemable
 
         _btnImportApps = new KButton
         {
-            Text = "📥 Nhập đơn từ Excel",
+            Text = "Nhập đơn từ Excel",
             Style = KButtonStyle.Secondary,
             Location = new Point(500, 40),
-            Size = new Size(160, 34)
+            Size = new Size(150, 34)
         };
         _btnImportApps.Click += async (s, e) => await ImportApplicationsAsync();
 
         _btnDownloadTemplate = new KButton
         {
-            Text = "📋 Tải mẫu Excel",
+            Text = "Tải mẫu Excel",
             Style = KButtonStyle.Secondary,
-            Location = new Point(670, 40),
+            Location = new Point(660, 40),
             Size = new Size(130, 34)
         };
         _btnDownloadTemplate.Click += async (s, e) => await DownloadAppTemplateAsync();
@@ -273,9 +282,9 @@ public class AllocationWizardView : UserControl, IThemable
 
         _btnRunEngine = new KButton
         {
-            Text = "🚀 BẮT ĐẦU XẾP PHÒNG TỰ ĐỘNG (AI ENGINE)",
+            Text = "Bắt đầu xếp phòng tự động (AI Engine)",
             Style = KButtonStyle.Primary,
-            Size = new Size(360, 42),
+            Size = new Size(340, 42),
             Location = new Point(10, 10)
         };
         _btnRunEngine.Click += async (s, e) => await RunAllocationEngineAsync();
@@ -356,7 +365,7 @@ public class AllocationWizardView : UserControl, IThemable
 
         _btnManualAdjust = new KButton
         {
-            Text = "🔍 Điều chỉnh phòng thủ công (Xem ΔS)",
+            Text = "Điều chỉnh phòng thủ công (Xem ΔS)",
             Style = KButtonStyle.Secondary,
             Size = new Size(270, 36),
             Location = new Point(10, 10)
@@ -365,10 +374,10 @@ public class AllocationWizardView : UserControl, IThemable
 
         _btnCommitContracts = new KButton
         {
-            Text = "✓ Chốt Kết Quả & Tự Động Sinh Hợp Đồng",
+            Text = "Chốt kết quả & Tự động sinh hợp đồng",
             Style = KButtonStyle.Primary,
-            Size = new Size(300, 36),
-            Location = new Point(ClientSize.Width - 340, 10),
+            Size = new Size(290, 36),
+            Location = new Point(ClientSize.Width - 330, 10),
             Anchor = AnchorStyles.Bottom | AnchorStyles.Right
         };
         _btnCommitContracts.Click += async (s, e) => await CommitContractsAsync();

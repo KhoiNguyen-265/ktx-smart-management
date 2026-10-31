@@ -160,6 +160,12 @@ public class DashboardView : UserControl, IThemable
         Load += async (s, e) => await LoadDashboardDataAsync();
     }
 
+    protected override async void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+        await LoadDashboardDataAsync();
+    }
+
     private KButton CreateActionButton(string text, Action onClick)
     {
         var btn = new KButton

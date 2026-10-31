@@ -100,10 +100,10 @@ public class ManualAdjustmentDialog : Form
         var bottomPanel = new Panel { Dock = DockStyle.Bottom, Height = 56, Padding = new Padding(16, 10, 16, 10) };
         _btnConfirm = new KButton
         {
-            Text = "✓ Xác nhận chuyển phòng",
+            Text = "Xác nhận chuyển phòng",
             Style = KButtonStyle.Primary,
-            Size = new Size(200, 36),
-            Location = new Point(ClientSize.Width - 340, 10),
+            Size = new Size(190, 36),
+            Location = new Point(ClientSize.Width - 330, 10),
             Anchor = AnchorStyles.Bottom | AnchorStyles.Right
         };
         _btnConfirm.Click += (s, e) =>

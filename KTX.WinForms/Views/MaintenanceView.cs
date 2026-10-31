@@ -57,28 +57,28 @@ public class MaintenanceView : UserControl, IThemable
 
         _btnCreate = new KButton
         {
-            Text = "➕ Báo Hỏng / Tạo Yêu Cầu",
+            Text = "Báo hỏng / Tạo yêu cầu",
             Style = KButtonStyle.Primary,
             Location = new Point(230, 10),
-            Size = new Size(205, 38)
+            Size = new Size(190, 38)
         };
         _btnCreate.Click += async (s, e) => await HandleCreateAsync();
 
         _btnUpdateStatus = new KButton
         {
-            Text = "🛠️ Cập nhật Tiến độ & Chi phí",
+            Text = "Cập nhật tiến độ & Chi phí",
             Style = KButtonStyle.Secondary,
-            Location = new Point(445, 10),
-            Size = new Size(225, 38)
+            Location = new Point(430, 10),
+            Size = new Size(210, 38)
         };
         _btnUpdateStatus.Click += async (s, e) => await HandleUpdateStatusAsync();
 
         _btnRefresh = new KButton
         {
-            Text = "🔄 Nạp lại",
+            Text = "Nạp lại",
             Style = KButtonStyle.Secondary,
-            Location = new Point(680, 10),
-            Size = new Size(100, 38)
+            Location = new Point(650, 10),
+            Size = new Size(90, 38)
         };
         _btnRefresh.Click += async (s, e) => await LoadDataAsync();
 
@@ -92,11 +92,11 @@ public class MaintenanceView : UserControl, IThemable
             Padding = new Padding(0, 4, 0, 4)
         };
 
-        _lblStatTotal = new Label { Text = "📋 Tổng: 0", Location = new Point(0, 10), AutoSize = true, Font = UIHelper.GetFont(9.5f, FontStyle.Bold) };
-        _lblStatPending = new Label { Text = "⏳ Chưa xử lý: 0", Location = new Point(120, 10), AutoSize = true, Font = UIHelper.GetFont(9.5f, FontStyle.Bold), ForeColor = Color.FromArgb(198, 40, 40) };
-        _lblStatProcessing = new Label { Text = "🛠️ Đang sửa: 0", Location = new Point(260, 10), AutoSize = true, Font = UIHelper.GetFont(9.5f, FontStyle.Bold), ForeColor = Color.FromArgb(230, 81, 0) };
-        _lblStatCompleted = new Label { Text = "✅ Đã xong: 0", Location = new Point(390, 10), AutoSize = true, Font = UIHelper.GetFont(9.5f, FontStyle.Bold), ForeColor = Color.FromArgb(46, 125, 50) };
-        _lblStatCost = new Label { Text = "💰 Tổng chi phí: 0 đ", Location = new Point(530, 10), AutoSize = true, Font = UIHelper.GetFont(9.5f, FontStyle.Bold) };
+        _lblStatTotal = new Label { Text = "Tổng: 0", Location = new Point(0, 10), AutoSize = true, Font = UIHelper.GetFont(9.5f, FontStyle.Bold) };
+        _lblStatPending = new Label { Text = "Chưa xử lý: 0", Location = new Point(110, 10), AutoSize = true, Font = UIHelper.GetFont(9.5f, FontStyle.Bold), ForeColor = Color.FromArgb(198, 40, 40) };
+        _lblStatProcessing = new Label { Text = "Đang sửa: 0", Location = new Point(240, 10), AutoSize = true, Font = UIHelper.GetFont(9.5f, FontStyle.Bold), ForeColor = Color.FromArgb(230, 81, 0) };
+        _lblStatCompleted = new Label { Text = "Đã xong: 0", Location = new Point(360, 10), AutoSize = true, Font = UIHelper.GetFont(9.5f, FontStyle.Bold), ForeColor = Color.FromArgb(46, 125, 50) };
+        _lblStatCost = new Label { Text = "Tổng chi phí: 0 đ", Location = new Point(490, 10), AutoSize = true, Font = UIHelper.GetFont(9.5f, FontStyle.Bold) };
 
         _panelStats.Controls.AddRange(new Control[] { _lblStatTotal, _lblStatPending, _lblStatProcessing, _lblStatCompleted, _lblStatCost });
 
@@ -130,6 +130,15 @@ public class MaintenanceView : UserControl, IThemable
         Load += async (s, e) => await LoadDataAsync();
     }
 
+    protected override async void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+        if (_requests.Count == 0)
+        {
+            await LoadDataAsync();
+        }
+    }
+
     private async Task LoadDataAsync()
     {
         try
@@ -145,11 +154,11 @@ public class MaintenanceView : UserControl, IThemable
             _requests = await _maintenanceService.GetRequestsAsync(status);
             var stats = await _maintenanceService.GetStatsAsync();
 
-            _lblStatTotal.Text = $"📋 Tổng: {stats.TotalRequests}";
-            _lblStatPending.Text = $"⏳ Chưa xử lý: {stats.PendingCount}";
-            _lblStatProcessing.Text = $"🛠️ Đang sửa: {stats.ProcessingCount}";
-            _lblStatCompleted.Text = $"✅ Đã xong: {stats.CompletedCount}";
-            _lblStatCost.Text = $"💰 Chi phí: {stats.TotalCost:N0} đ";
+            _lblStatTotal.Text = $"Tổng: {stats.TotalRequests}";
+            _lblStatPending.Text = $"Chưa xử lý: {stats.PendingCount}";
+            _lblStatProcessing.Text = $"Đang sửa: {stats.ProcessingCount}";
+            _lblStatCompleted.Text = $"Đã xong: {stats.CompletedCount}";
+            _lblStatCost.Text = $"Chi phí: {stats.TotalCost:N0} đ";
 
             _grid.Rows.Clear();
             foreach (var r in _requests)

@@ -49,7 +49,7 @@ public class ContractsView : UserControl, IThemable
 
         _txtSearch = new KTextBox
         {
-            Placeholder = "🔍 Tìm theo MSSV, Họ tên, Phòng hoặc CCCD...",
+            Placeholder = "Tìm theo MSSV, Họ tên, Phòng hoặc CCCD...",
             Location = new Point(0, 8),
             Size = new Size(320, 40)
         };
@@ -76,37 +76,37 @@ public class ContractsView : UserControl, IThemable
 
         _btnTransfer = new KButton
         {
-            Text = "🔄 Chuyển phòng",
+            Text = "Chuyển phòng",
             Style = KButtonStyle.Secondary,
             Location = new Point(510, 8),
-            Size = new Size(130, 40)
+            Size = new Size(120, 40)
         };
         _btnTransfer.Click += async (s, e) => await HandleTransferRoomAsync();
 
         _btnExtend = new KButton
         {
-            Text = "⏳ Gia hạn",
+            Text = "Gia hạn",
             Style = KButtonStyle.Secondary,
-            Location = new Point(650, 8),
-            Size = new Size(110, 40)
+            Location = new Point(640, 8),
+            Size = new Size(90, 40)
         };
         _btnExtend.Click += async (s, e) => await HandleExtendAsync();
 
         _btnCheckOut = new KButton
         {
-            Text = "🚪 Trả phòng & Cọc",
+            Text = "Trả phòng & Cọc",
             Style = KButtonStyle.Secondary,
-            Location = new Point(770, 8),
-            Size = new Size(150, 40)
+            Location = new Point(740, 8),
+            Size = new Size(130, 40)
         };
         _btnCheckOut.Click += async (s, e) => await HandleCheckOutAsync();
 
         _btnPrintPdf = new KButton
         {
-            Text = "🖨 In Hợp đồng PDF",
+            Text = "In Hợp đồng PDF",
             Style = KButtonStyle.Primary,
-            Location = new Point(930, 8),
-            Size = new Size(160, 40)
+            Location = new Point(880, 8),
+            Size = new Size(140, 40)
         };
         _btnPrintPdf.Click += async (s, e) => await HandlePrintPdfAsync();
 
@@ -165,9 +165,9 @@ public class ContractsView : UserControl, IThemable
 
         _btnPrev = new KButton
         {
-            Text = "◀ Trang trước",
+            Text = "Trang trước",
             Style = KButtonStyle.Secondary,
-            Size = new Size(110, 34),
+            Size = new Size(100, 34),
             Location = new Point(0, 8)
         };
         _btnPrev.Click += async (s, e) =>
@@ -183,16 +183,16 @@ public class ContractsView : UserControl, IThemable
         {
             Text = "Trang 1 / 1 (Tổng 0 hợp đồng)",
             Font = UIHelper.GetFont(9.5f, FontStyle.Regular),
-            Location = new Point(125, 14),
+            Location = new Point(115, 14),
             AutoSize = true
         };
 
         _btnNext = new KButton
         {
-            Text = "Trang sau ▶",
+            Text = "Trang sau",
             Style = KButtonStyle.Secondary,
-            Size = new Size(110, 34),
-            Location = new Point(360, 8)
+            Size = new Size(100, 34),
+            Location = new Point(340, 8)
         };
         _btnNext.Click += async (s, e) =>
         {

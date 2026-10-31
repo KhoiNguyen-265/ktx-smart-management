@@ -43,7 +43,7 @@ public class StudentsView : UserControl, IThemable
 
         _txtSearch = new KTextBox
         {
-            Placeholder = "🔍 Tìm theo MSSV, Họ tên, CCCD hoặc Khoa...",
+            Placeholder = "Tìm theo MSSV, Họ tên, CCCD hoặc Khoa...",
             Location = new Point(0, 8),
             Size = new Size(340, 40)
         };
@@ -55,37 +55,37 @@ public class StudentsView : UserControl, IThemable
 
         _btnExportExcel = new KButton
         {
-            Text = "📤 Xuất Excel",
+            Text = "Xuất Excel",
             Style = KButtonStyle.Secondary,
             Location = new Point(360, 8),
-            Size = new Size(125, 40)
+            Size = new Size(115, 40)
         };
         _btnExportExcel.Click += async (s, e) => await HandleExportExcelAsync();
 
         _btnImportExcel = new KButton
         {
-            Text = "📥 Nhập Excel",
+            Text = "Nhập Excel",
             Style = KButtonStyle.Primary,
-            Location = new Point(495, 8),
-            Size = new Size(125, 40)
+            Location = new Point(485, 8),
+            Size = new Size(115, 40)
         };
         _btnImportExcel.Click += async (s, e) => await HandleImportExcelAsync();
 
         _btnTemplateExcel = new KButton
         {
-            Text = "📋 Tải mẫu Excel",
+            Text = "Tải mẫu Excel",
             Style = KButtonStyle.Secondary,
-            Location = new Point(630, 8),
-            Size = new Size(130, 40)
+            Location = new Point(610, 8),
+            Size = new Size(125, 40)
         };
         _btnTemplateExcel.Click += async (s, e) => await HandleDownloadTemplateAsync();
 
         _btnScanCccd = new KButton
         {
-            Text = "📷 Quét QR CCCD",
+            Text = "Quét QR CCCD",
             Style = KButtonStyle.Primary,
-            Location = new Point(770, 8),
-            Size = new Size(150, 40)
+            Location = new Point(745, 8),
+            Size = new Size(140, 40)
         };
         _btnScanCccd.Click += (s, e) => HandleScanCccd();
 
@@ -125,9 +125,9 @@ public class StudentsView : UserControl, IThemable
 
         _btnPrev = new KButton
         {
-            Text = "◀ Trang trước",
+            Text = "Trang trước",
             Style = KButtonStyle.Secondary,
-            Size = new Size(110, 34),
+            Size = new Size(100, 34),
             Location = new Point(0, 8)
         };
         _btnPrev.Click += async (s, e) =>
@@ -143,16 +143,16 @@ public class StudentsView : UserControl, IThemable
         {
             Text = "Trang 1 / 1 (Tổng 0 sinh viên)",
             Font = UIHelper.GetFont(9.5f, FontStyle.Regular),
-            Location = new Point(125, 14),
+            Location = new Point(115, 14),
             AutoSize = true
         };
 
         _btnNext = new KButton
         {
-            Text = "Trang sau ▶",
+            Text = "Trang sau",
             Style = KButtonStyle.Secondary,
-            Size = new Size(110, 34),
-            Location = new Point(360, 8)
+            Size = new Size(100, 34),
+            Location = new Point(340, 8)
         };
         _btnNext.Click += async (s, e) =>
         {

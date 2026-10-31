@@ -119,7 +119,23 @@ public class MainForm : Form, IThemable
     {
         _contentPanel.Controls.Clear();
         _sidebar.SelectedKey = key;
-        _lblBreadcrumb.Text = $"Trang chủ / {_sidebar.SelectedKey}";
+
+        string pageTitle = key switch
+        {
+            "Dashboard" => "Tổng quan",
+            "Rooms" => "Tòa & Phòng",
+            "Students" => "Quản lý Sinh viên",
+            "Allocation" => "Xếp phòng tự động AI",
+            "Contracts" => "Hợp đồng lưu trú",
+            "Meters" => "Chỉ số Điện Nước",
+            "Invoices" => "Hóa đơn & VietQR",
+            "Reconcile" => "Đối soát Sao kê",
+            "Maintenance" => "Sự cố & Sửa chữa",
+            "Reports" => "Báo cáo Thống kê",
+            "Settings" => "Cấu hình Hệ thống",
+            _ => key
+        };
+        _lblBreadcrumb.Text = $"Trang chủ / {pageTitle}";
 
         if (key == "Dashboard")
         {

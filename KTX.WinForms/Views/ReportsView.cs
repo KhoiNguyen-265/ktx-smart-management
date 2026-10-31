@@ -32,7 +32,7 @@ public class ReportsView : UserControl, IThemable
         // 1. Occupancy Excel Report Card
         _cardOccupancy = new KCard
         {
-            Title = "📊 Báo cáo Tình trạng Lưu trú & Danh sách Sinh viên",
+            Title = "Báo cáo Tình trạng Lưu trú & Danh sách Sinh viên",
             Subtitle = "Xuất file ClosedXML Excel chuẩn mẫu quản lý KTX, thống kê chi tiết theo từng Tòa, Phòng và Hợp đồng",
             Dock = DockStyle.Top,
             Height = 160,
@@ -41,10 +41,10 @@ public class ReportsView : UserControl, IThemable
 
         _btnExportOccupancy = new KButton
         {
-            Text = "📥 Xuất Báo Cáo Lưu Trú (.xlsx)",
+            Text = "Xuất Báo Cáo Lưu Trú (.xlsx)",
             Style = KButtonStyle.Primary,
             Location = new Point(20, 25),
-            Size = new Size(260, 42)
+            Size = new Size(250, 42)
         };
         _btnExportOccupancy.Click += async (s, e) => await ExportOccupancyAsync();
 
@@ -58,7 +58,7 @@ public class ReportsView : UserControl, IThemable
         // 2. Financial PDF Report Card
         _cardFinance = new KCard
         {
-            Title = "📄 Báo cáo Tài chính Tháng, Công Nợ & Bảo trì Thiết bị",
+            Title = "Báo cáo Tài chính Tháng, Công Nợ & Bảo trì Thiết bị",
             Subtitle = "Xuất file QuestPDF chuẩn văn bản hành chính: thống kê thu chi tiền phòng, điện nước và chi phí sửa chữa",
             Dock = DockStyle.Top,
             Height = 180,
@@ -79,10 +79,10 @@ public class ReportsView : UserControl, IThemable
 
         _btnExportFinance = new KButton
         {
-            Text = "📥 Xuất Báo Cáo Tài Chính PDF (.pdf)",
+            Text = "Xuất Báo Cáo Tài Chính PDF (.pdf)",
             Style = KButtonStyle.Primary,
             Location = new Point(340, 18),
-            Size = new Size(280, 42)
+            Size = new Size(270, 42)
         };
         _btnExportFinance.Click += async (s, e) => await ExportFinanceAsync();
 

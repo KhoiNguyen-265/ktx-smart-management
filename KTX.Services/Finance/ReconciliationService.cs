@@ -118,7 +118,45 @@ public class ReconciliationService : IReconciliationService
             HoaDonDienNuoc? matchedInvoice = null;
             KhoanThuTienPhong? matchedRoomFee = null;
 
-            if (match.Success)
+            // 1. Thử khớp trực tiếp mã thanh toán có trong nội dung (VD: KTXDN_A101_1026 hoặc KTXDN000001)
+            matchedInvoice = pendingInvoices.FirstOrDefault(i => !string.IsNullOrEmpty(i.MaThanhToan) && noiDung.Contains(i.MaThanhToan, StringComparison.OrdinalIgnoreCase));
+            if (matchedInvoice != null)
+            {
+                recognizedCode = matchedInvoice.MaThanhToan;
+                decimal remaining = matchedInvoice.TongTien - matchedInvoice.DaThu;
+                if (soTien >= remaining)
+                {
+                    trangThaiKhop = TrangThaiGiaoDich.DaKhop;
+                    matchDetail = $"Khớp đủ tiền HĐ điện nước {matchedInvoice.MaThanhToan} (Phòng {matchedInvoice.Phong.MaPhong})";
+                }
+                else
+                {
+                    trangThaiKhop = TrangThaiGiaoDich.MotPhan;
+                    matchDetail = $"Khớp một phần {soTien:N0}/{remaining:N0} đ (Phòng {matchedInvoice.Phong.MaPhong})";
+                }
+            }
+            else
+            {
+                matchedRoomFee = pendingRoomFees.FirstOrDefault(k => !string.IsNullOrEmpty(k.MaThanhToan) && noiDung.Contains(k.MaThanhToan, StringComparison.OrdinalIgnoreCase));
+                if (matchedRoomFee != null)
+                {
+                    recognizedCode = matchedRoomFee.MaThanhToan;
+                    decimal remaining = matchedRoomFee.PhaiThu - matchedRoomFee.DaThu;
+                    if (soTien >= remaining)
+                    {
+                        trangThaiKhop = TrangThaiGiaoDich.DaKhop;
+                        matchDetail = $"Khớp đủ tiền phòng {matchedRoomFee.MaThanhToan} (SV {matchedRoomFee.HopDong.SinhVien.HoTen})";
+                    }
+                    else
+                    {
+                        trangThaiKhop = TrangThaiGiaoDich.MotPhan;
+                        matchDetail = $"Khớp một phần {soTien:N0}/{remaining:N0} đ (SV {matchedRoomFee.HopDong.SinhVien.HoTen})";
+                    }
+                }
+            }
+
+            // 2. Nếu chưa khớp trực tiếp, thử qua Regex KTX (DN|TP) \d+
+            if (trangThaiKhop == TrangThaiGiaoDich.CanXuLy && match.Success)
             {
                 string prefix = match.Groups[1].Value.ToUpperInvariant(); // "DN" hoặc "TP"
                 int number = int.Parse(match.Groups[2].Value);
@@ -280,8 +318,26 @@ public class ReconciliationService : IReconciliationService
     {
         await using var db = await _contextFactory.CreateDbContextAsync(ct);
 
-        var pendingInv = await db.HoaDonDienNuocs.Include(h => h.Phong).Take(3).ToListAsync(ct);
-        var pendingFee = await db.KhoanThuTienPhongs.Take(3).ToListAsync(ct);
+        var pendingInv = await db.HoaDonDienNuocs
+            .Include(h => h.Phong)
+            .Where(h => h.TrangThai != TrangThaiHoaDon.DaThanhToan)
+            .Take(3)
+            .ToListAsync(ct);
+
+        if (pendingInv.Count == 0)
+        {
+            pendingInv = await db.HoaDonDienNuocs.Include(h => h.Phong).Take(3).ToListAsync(ct);
+        }
+
+        var pendingFee = await db.KhoanThuTienPhongs
+            .Where(k => k.TrangThai != TrangThaiHoaDon.DaThanhToan)
+            .Take(3)
+            .ToListAsync(ct);
+
+        if (pendingFee.Count == 0)
+        {
+            pendingFee = await db.KhoanThuTienPhongs.Take(3).ToListAsync(ct);
+        }
 
         using var workbook = new XLWorkbook();
         var ws = workbook.Worksheets.Add("SaoKeNganHang");

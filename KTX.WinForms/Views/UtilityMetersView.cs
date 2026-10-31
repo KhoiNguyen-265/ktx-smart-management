@@ -50,19 +50,19 @@ public class UtilityMetersView : UserControl, IThemable
 
         _btnLoad = new KButton
         {
-            Text = "🔄 Nạp dữ liệu",
+            Text = "Nạp dữ liệu",
             Style = KButtonStyle.Secondary,
             Location = new Point(480, 12),
-            Size = new Size(120, 36)
+            Size = new Size(110, 36)
         };
         _btnLoad.Click += async (s, e) => await LoadReadingsAsync();
 
         _btnSave = new KButton
         {
-            Text = "💾 Lưu Tất Cả Chỉ Số",
+            Text = "Lưu tất cả chỉ số",
             Style = KButtonStyle.Primary,
-            Location = new Point(610, 12),
-            Size = new Size(180, 36)
+            Location = new Point(600, 12),
+            Size = new Size(160, 36)
         };
         _btnSave.Click += async (s, e) => await SaveAllReadingsAsync();
 
@@ -84,6 +84,15 @@ public class UtilityMetersView : UserControl, IThemable
 
         ApplyTheme(ThemeManager.Current);
         Load += async (s, e) => await InitializeAsync();
+    }
+
+    protected override async void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+        if (_readings.Count == 0)
+        {
+            await InitializeAsync();
+        }
     }
 
     private void SetupColumns()

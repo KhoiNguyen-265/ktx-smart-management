@@ -59,33 +59,33 @@ public class InvoicesView : UserControl, IThemable
         _cboYear.SelectedItem = DateTime.Now.Year;
         _cboYear.SelectedIndexChanged += async (s, e) => await LoadDataAsync();
 
-        _txtSearch = new KTextBox { Placeholder = "🔍 Tìm mã KTXDN, KTXTP, MSSV, Phòng...", Location = new Point(175, 10), Width = 280 };
+        _txtSearch = new KTextBox { Placeholder = "Tìm mã KTXDN, KTXTP, MSSV, Phòng...", Location = new Point(175, 10), Width = 280 };
         _txtSearch.InnerTextBox.TextChanged += async (s, e) => await LoadDataAsync();
 
         _btnGenInvoices = new KButton
         {
-            Text = "⚡ Lập HĐ Điện Nước Tháng",
+            Text = "Lập HĐ Điện Nước",
             Style = KButtonStyle.Primary,
             Location = new Point(470, 10),
-            Size = new Size(195, 36)
+            Size = new Size(160, 36)
         };
         _btnGenInvoices.Click += async (s, e) => await GenerateInvoicesAsync();
 
         _btnGenRoomFees = new KButton
         {
-            Text = "📄 Lập Tiền Phòng Học Kỳ",
+            Text = "Lập Tiền Phòng Học Kỳ",
             Style = KButtonStyle.Secondary,
-            Location = new Point(675, 10),
-            Size = new Size(185, 36)
+            Location = new Point(640, 10),
+            Size = new Size(170, 36)
         };
         _btnGenRoomFees.Click += async (s, e) => await GenerateRoomFeesAsync();
 
         _btnCashPay = new KButton
         {
-            Text = "💵 Thu Tiền Mặt",
+            Text = "Thu Tiền Mặt",
             Style = KButtonStyle.Secondary,
-            Location = new Point(870, 10),
-            Size = new Size(130, 36)
+            Location = new Point(820, 10),
+            Size = new Size(120, 36)
         };
         _btnCashPay.Click += async (s, e) => await HandleCashPaymentAsync();
 
@@ -131,8 +131,8 @@ public class InvoicesView : UserControl, IThemable
 
         // Main TabControl
         _tabMain = new TabControl { Dock = DockStyle.Fill, Font = new Font("Segoe UI", 10F) };
-        _tabUtility = new TabPage("⚡ Hóa đơn điện nước (theo phòng)");
-        _tabRoomFee = new TabPage("🏠 Khoản thu tiền phòng (theo hợp đồng)");
+        _tabUtility = new TabPage("Hóa đơn điện nước (theo phòng)");
+        _tabRoomFee = new TabPage("Khoản thu tiền phòng (theo hợp đồng)");
 
         _gridUtility = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AllowUserToAddRows = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill };
         KDataGridHelper.ApplyModernStyle(_gridUtility);
@@ -156,6 +156,15 @@ public class InvoicesView : UserControl, IThemable
 
         ApplyTheme(ThemeManager.Current);
         Load += async (s, e) => await InitializeAsync();
+    }
+
+    protected override async void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+        if (_invoices.Count == 0 && _roomFees.Count == 0)
+        {
+            await InitializeAsync();
+        }
     }
 
     private void SetupUtilityColumns()

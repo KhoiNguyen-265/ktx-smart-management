@@ -54,19 +54,38 @@ public class KSidebar : UserControl, IThemable
         ApplyTheme(ThemeManager.Current);
     }
 
+    private static readonly bool HasMdl2 = FontFamily.Families.Any(f => f.Name.Equals("Segoe MDL2 Assets", StringComparison.OrdinalIgnoreCase));
+
     private void InitializeDefaultItems()
     {
-        _items.Add(new SidebarItem { Key = "Dashboard", Title = "Tổng quan", IconText = "📊" });
-        _items.Add(new SidebarItem { Key = "Rooms", Title = "Tòa & Phòng", IconText = "🏢" });
-        _items.Add(new SidebarItem { Key = "Students", Title = "Sinh viên", IconText = "👥" });
-        _items.Add(new SidebarItem { Key = "Allocation", Title = "Xếp phòng AI", IconText = "🧩" });
-        _items.Add(new SidebarItem { Key = "Contracts", Title = "Hợp đồng", IconText = "📄" });
-        _items.Add(new SidebarItem { Key = "Meters", Title = "Chỉ số Điện Nước", IconText = "⚡" });
-        _items.Add(new SidebarItem { Key = "Invoices", Title = "Hóa đơn & VietQR", IconText = "💳" });
-        _items.Add(new SidebarItem { Key = "Reconcile", Title = "Đối soát Sao kê", IconText = "🔄" });
-        _items.Add(new SidebarItem { Key = "Maintenance", Title = "Sự cố & Sửa chữa", IconText = "🛠️" });
-        _items.Add(new SidebarItem { Key = "Reports", Title = "Báo cáo Thống kê", IconText = "📈" });
-        _items.Add(new SidebarItem { Key = "Settings", Title = "Cấu hình Hệ thống", IconText = "⚙" });
+        if (HasMdl2)
+        {
+            _items.Add(new SidebarItem { Key = "Dashboard", Title = "Tổng quan", IconText = "\uE9F9" });
+            _items.Add(new SidebarItem { Key = "Rooms", Title = "Tòa & Phòng", IconText = "\uE825" });
+            _items.Add(new SidebarItem { Key = "Students", Title = "Sinh viên", IconText = "\uE77B" });
+            _items.Add(new SidebarItem { Key = "Allocation", Title = "Xếp phòng AI", IconText = "\uE8EC" });
+            _items.Add(new SidebarItem { Key = "Contracts", Title = "Hợp đồng", IconText = "\uE8A5" });
+            _items.Add(new SidebarItem { Key = "Meters", Title = "Chỉ số Điện Nước", IconText = "\uE945" });
+            _items.Add(new SidebarItem { Key = "Invoices", Title = "Hóa đơn & VietQR", IconText = "\uE8C7" });
+            _items.Add(new SidebarItem { Key = "Reconcile", Title = "Đối soát Sao kê", IconText = "\uE777" });
+            _items.Add(new SidebarItem { Key = "Maintenance", Title = "Sự cố & Sửa chữa", IconText = "\uE90F" });
+            _items.Add(new SidebarItem { Key = "Reports", Title = "Báo cáo Thống kê", IconText = "\uE9D9" });
+            _items.Add(new SidebarItem { Key = "Settings", Title = "Cấu hình Hệ thống", IconText = "\uE713" });
+        }
+        else
+        {
+            _items.Add(new SidebarItem { Key = "Dashboard", Title = "Tổng quan", IconText = "▦" });
+            _items.Add(new SidebarItem { Key = "Rooms", Title = "Tòa & Phòng", IconText = "⊞" });
+            _items.Add(new SidebarItem { Key = "Students", Title = "Sinh viên", IconText = "●" });
+            _items.Add(new SidebarItem { Key = "Allocation", Title = "Xếp phòng AI", IconText = "◈" });
+            _items.Add(new SidebarItem { Key = "Contracts", Title = "Hợp đồng", IconText = "≡" });
+            _items.Add(new SidebarItem { Key = "Meters", Title = "Chỉ số Điện Nước", IconText = "⚡" });
+            _items.Add(new SidebarItem { Key = "Invoices", Title = "Hóa đơn & VietQR", IconText = "₫" });
+            _items.Add(new SidebarItem { Key = "Reconcile", Title = "Đối soát Sao kê", IconText = "↺" });
+            _items.Add(new SidebarItem { Key = "Maintenance", Title = "Sự cố & Sửa chữa", IconText = "⚙" });
+            _items.Add(new SidebarItem { Key = "Reports", Title = "Báo cáo Thống kê", IconText = "▲" });
+            _items.Add(new SidebarItem { Key = "Settings", Title = "Cấu hình Hệ thống", IconText = "⚙" });
+        }
     }
 
     public void ApplyTheme(Theme theme)
@@ -146,17 +165,21 @@ public class KSidebar : UserControl, IThemable
         }
 
         // App Logo / Title Header
-        using var emojiFont = new Font("Segoe UI Emoji", 12f, FontStyle.Regular);
+        using var iconFont = HasMdl2
+            ? new Font("Segoe MDL2 Assets", 12f, FontStyle.Regular)
+            : UIHelper.GetFont(11.5f, FontStyle.Regular);
         using var logoFont = UIHelper.GetFont(13f, FontStyle.Bold);
         using var logoBrush = new SolidBrush(theme.Primary);
+        string logoIcon = HasMdl2 ? "\uE80F" : "⌂";
+
         if (!_isCollapsed)
         {
-            g.DrawString("🏠", emojiFont, logoBrush, 20, 23);
+            g.DrawString(logoIcon, iconFont, logoBrush, 20, 24);
             g.DrawString("KTX SMART", logoFont, logoBrush, 46, 24);
         }
         else
         {
-            g.DrawString("🏠", emojiFont, logoBrush, (Width - 20) / 2, 23);
+            g.DrawString(logoIcon, iconFont, logoBrush, (Width - 20) / 2, 24);
         }
 
         // Menu Items
@@ -190,11 +213,10 @@ public class KSidebar : UserControl, IThemable
             }
 
             // Draw Icon
-            using var iconFont = new Font("Segoe UI Emoji", 11.5f, FontStyle.Regular);
             int iconX = _isCollapsed ? (Width - 20) / 2 : 24;
             var iconColor = isSelected ? theme.Primary : (isHovered ? theme.TextPrimary : theme.TextSecondary);
             using var iconBrush = new SolidBrush(iconColor);
-            g.DrawString(item.IconText, iconFont, iconBrush, iconX, itemY + 8);
+            g.DrawString(item.IconText, iconFont, iconBrush, iconX, itemY + 10);
 
             // Draw Title if expanded
             if (!_isCollapsed)

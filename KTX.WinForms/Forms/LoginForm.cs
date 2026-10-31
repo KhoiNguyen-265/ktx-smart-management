@@ -197,7 +197,7 @@ public class LoginForm : Form, IThemable
         using var featureFont = UIHelper.GetFont(9.5f, FontStyle.Regular);
         using var footerFont = UIHelper.GetFont(8.5f, FontStyle.Italic);
 
-        g.DrawString("🏠 KTX SMART", logoFont, Brushes.White, 36, 60);
+        g.DrawString("KTX SMART", logoFont, Brushes.White, 36, 60);
         g.DrawString("Hệ thống Quản lý Ký túc xá Thông minh", subLogoFont, Brushes.LightSkyBlue, 36, 108);
 
         // Decorative bullets

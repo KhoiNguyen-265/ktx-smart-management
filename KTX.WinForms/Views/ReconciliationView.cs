@@ -53,28 +53,28 @@ public class ReconciliationView : UserControl, IThemable
 
         _btnImport = new KButton
         {
-            Text = "📥 Nhập File Sao Kê Excel",
+            Text = "Nhập file sao kê Excel",
             Style = KButtonStyle.Primary,
             Location = new Point(0, 10),
-            Size = new Size(205, 38)
+            Size = new Size(185, 38)
         };
         _btnImport.Click += async (s, e) => await ImportExcelAsync();
 
         _btnDownloadSample = new KButton
         {
-            Text = "📋 Tải File Mẫu Sao Kê",
+            Text = "Tải file mẫu sao kê",
             Style = KButtonStyle.Secondary,
-            Location = new Point(215, 10),
-            Size = new Size(185, 38)
+            Location = new Point(195, 10),
+            Size = new Size(170, 38)
         };
         _btnDownloadSample.Click += async (s, e) => await DownloadSampleExcelAsync();
 
         _btnRefresh = new KButton
         {
-            Text = "🔄 Làm mới",
+            Text = "Làm mới",
             Style = KButtonStyle.Secondary,
-            Location = new Point(410, 10),
-            Size = new Size(110, 38)
+            Location = new Point(375, 10),
+            Size = new Size(100, 38)
         };
         _btnRefresh.Click += async (s, e) => await LoadTransactionsAsync();
 
@@ -90,7 +90,7 @@ public class ReconciliationView : UserControl, IThemable
 
         _lblStatTotal = new Label
         {
-            Text = "📊 Tổng GD: 0 | 0 đ",
+            Text = "Tổng GD: 0 | 0 đ",
             Font = UIHelper.GetFont(9.5f, FontStyle.Bold),
             Location = new Point(0, 6),
             AutoSize = true
@@ -98,34 +98,34 @@ public class ReconciliationView : UserControl, IThemable
 
         _lblStatMatched = new Label
         {
-            Text = "✅ Đã khớp: 0",
+            Text = "Đã khớp: 0",
             ForeColor = Color.FromArgb(46, 125, 50),
             Font = UIHelper.GetFont(9.5f, FontStyle.Bold),
-            Location = new Point(260, 6),
+            Location = new Point(250, 6),
             AutoSize = true
         };
 
         _lblStatPartial = new Label
         {
-            Text = "⏳ Khớp một phần: 0",
+            Text = "Khớp một phần: 0",
             ForeColor = Color.FromArgb(230, 81, 0),
             Font = UIHelper.GetFont(9.5f, FontStyle.Bold),
-            Location = new Point(410, 6),
+            Location = new Point(390, 6),
             AutoSize = true
         };
 
         _lblStatUnmatched = new Label
         {
-            Text = "⚠️ Cần xử lý: 0",
+            Text = "Cần xử lý: 0",
             ForeColor = Color.FromArgb(198, 40, 40),
             Font = UIHelper.GetFont(9.5f, FontStyle.Bold),
-            Location = new Point(590, 6),
+            Location = new Point(560, 6),
             AutoSize = true
         };
 
         _lblDuplicateBanner = new Label
         {
-            Text = "ℹ️ Đã kích hoạt cơ chế chống trùng 2 lớp (Mã giao dịch + Chuỗi băm SHA256)",
+            Text = "Cơ chế chống trùng 2 lớp: Mã giao dịch + Chuỗi băm SHA256",
             ForeColor = Color.FromArgb(30, 136, 229),
             Font = UIHelper.GetFont(9f, FontStyle.Regular),
             Location = new Point(0, 34),
@@ -141,9 +141,9 @@ public class ReconciliationView : UserControl, IThemable
             Font = UIHelper.GetFont(9.5f, FontStyle.Regular)
         };
 
-        _tabMatched = new TabPage("✅ Đã khớp hoàn toàn");
-        _tabPartial = new TabPage("⏳ Khớp một phần");
-        _tabUnmatched = new TabPage("⚠️ Cần kế toán xử lý");
+        _tabMatched = new TabPage("Đã khớp hoàn toàn");
+        _tabPartial = new TabPage("Khớp một phần");
+        _tabUnmatched = new TabPage("Cần kế toán xử lý");
 
         _gridMatched = CreateGrid();
         _gridPartial = CreateGrid();
@@ -163,6 +163,15 @@ public class ReconciliationView : UserControl, IThemable
         ApplyTheme(ThemeManager.Current);
 
         Load += async (s, e) => await LoadTransactionsAsync();
+    }
+
+    protected override async void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+        if (_allTransactions.Count == 0)
+        {
+            await LoadTransactionsAsync();
+        }
     }
 
     private DataGridView CreateGrid()
@@ -212,14 +221,14 @@ public class ReconciliationView : UserControl, IThemable
 
         decimal totalAmount = _allTransactions.Sum(t => t.SoTien);
 
-        _lblStatTotal.Text = $"📊 Tổng GD: {_allTransactions.Count:N0} dòng | {totalAmount:N0} đ";
-        _lblStatMatched.Text = $"✅ Đã khớp: {matched.Count:N0}";
-        _lblStatPartial.Text = $"⏳ Khớp một phần: {partial.Count:N0}";
-        _lblStatUnmatched.Text = $"⚠️ Cần xử lý: {unmatched.Count:N0}";
+        _lblStatTotal.Text = $"Tổng GD: {_allTransactions.Count:N0} dòng | {totalAmount:N0} đ";
+        _lblStatMatched.Text = $"Đã khớp: {matched.Count:N0}";
+        _lblStatPartial.Text = $"Khớp một phần: {partial.Count:N0}";
+        _lblStatUnmatched.Text = $"Cần xử lý: {unmatched.Count:N0}";
 
-        _tabMatched.Text = $"✅ Đã khớp hoàn toàn ({matched.Count})";
-        _tabPartial.Text = $"⏳ Khớp một phần ({partial.Count})";
-        _tabUnmatched.Text = $"⚠️ Cần xử lý ({unmatched.Count})";
+        _tabMatched.Text = $"Đã khớp hoàn toàn ({matched.Count})";
+        _tabPartial.Text = $"Khớp một phần ({partial.Count})";
+        _tabUnmatched.Text = $"Cần xử lý ({unmatched.Count})";
 
         BindGrid(_gridMatched, matched);
         BindGrid(_gridPartial, partial);
@@ -268,7 +277,7 @@ public class ReconciliationView : UserControl, IThemable
             await using var fs = File.OpenRead(ofd.FileName);
             var result = await _reconciliationService.ImportAndReconcileExcelAsync(fs, Path.GetFileName(ofd.FileName));
 
-            _lblDuplicateBanner.Text = $"⚡ Kết quả Import: Tổng {result.TotalRows} dòng | Khớp đủ: {result.MatchedCount} | Một phần: {result.PartialCount} | Cần xử lý: {result.UnmatchedCount} | 🛡️ Bỏ qua trùng: {result.DuplicateCount} dòng";
+            _lblDuplicateBanner.Text = $"Kết quả Import: Tổng {result.TotalRows} dòng | Khớp đủ: {result.MatchedCount} | Một phần: {result.PartialCount} | Cần xử lý: {result.UnmatchedCount} | Bỏ qua trùng: {result.DuplicateCount} dòng";
             _lblDuplicateBanner.ForeColor = result.DuplicateCount > 0 ? Color.FromArgb(239, 108, 0) : Color.FromArgb(46, 125, 50);
 
             MessageBox.Show(
