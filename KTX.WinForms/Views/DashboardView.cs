@@ -51,7 +51,7 @@ public class DashboardView : UserControl, IThemable
 
         _cardRooms = new KStatCard
         {
-            Title = "🏢 Tổng số phòng KTX",
+            Title = "Tổng số phòng KTX",
             Value = "120 phòng",
             TrendText = "▲ Đang tải...",
             IsPositiveTrend = true,
@@ -60,7 +60,7 @@ public class DashboardView : UserControl, IThemable
 
         _cardStudents = new KStatCard
         {
-            Title = "👥 Sinh viên đang lưu trú",
+            Title = "Sinh viên đang lưu trú",
             Value = "600 SV",
             TrendText = "● Đang tải...",
             IsPositiveTrend = true,
@@ -69,7 +69,7 @@ public class DashboardView : UserControl, IThemable
 
         _cardRevenue = new KStatCard
         {
-            Title = "💰 Doanh thu tháng này",
+            Title = "Doanh thu tháng này",
             Value = "0 đ",
             TrendText = "▲ Đang tải...",
             IsPositiveTrend = true,
@@ -78,7 +78,7 @@ public class DashboardView : UserControl, IThemable
 
         _cardAlerts = new KStatCard
         {
-            Title = "⚠️ Cần theo dõi & xử lý",
+            Title = "Cần theo dõi & xử lý",
             Value = "0 mục",
             TrendText = "● Đang tải...",
             IsPositiveTrend = false,
@@ -101,7 +101,7 @@ public class DashboardView : UserControl, IThemable
 
         _cardChartOccupancy = new KCard
         {
-            Title = "📊 Tỷ lệ Lấp đầy theo Tòa nhà",
+            Title = "Tỷ lệ Lấp đầy theo Tòa nhà",
             Subtitle = "So sánh số chỗ đã có sinh viên ở vs số chỗ còn trống",
             Dock = DockStyle.Fill,
             Padding = new Padding(12, 40, 12, 12)
@@ -111,8 +111,8 @@ public class DashboardView : UserControl, IThemable
 
         _cardChartRevenue = new KCard
         {
-            Title = "📈 Doanh thu KTX 6 tháng gần nhất",
-            Subtitle = "Tổng hợp nguồn thu tiền phòng và điện nước đã ghi nhận",
+            Title = "Doanh thu KTX 6 tháng gần nhất",
+            Subtitle = "Tổng hợp nguồn thu tiền phòng và điện nước đã ghi nhận (triệu VNĐ)",
             Dock = DockStyle.Fill,
             Padding = new Padding(12, 40, 12, 12)
         };
@@ -125,7 +125,7 @@ public class DashboardView : UserControl, IThemable
         // 3. Quick Actions Card
         _cardQuickActions = new KCard
         {
-            Title = "⚡ Lối tắt chức năng nhanh & Thao tác thường dùng",
+            Title = "Lối tắt chức năng nhanh & Thao tác thường dùng",
             Subtitle = "Phím tắt toàn cục: Bấm [Ctrl + K] để mở bảng tìm kiếm thông minh nhanh",
             Dock = DockStyle.Top,
             Height = 120,
@@ -140,12 +140,12 @@ public class DashboardView : UserControl, IThemable
             Padding = new Padding(4)
         };
 
-        var btnAlloc = CreateActionButton("🧩 Xếp phòng AI", () => _onNavigate?.Invoke("Allocation"));
-        var btnMeters = CreateActionButton("⚡ Chỉ số Điện Nước", () => _onNavigate?.Invoke("Meters"));
-        var btnInvoices = CreateActionButton("💳 Hóa đơn & VietQR", () => _onNavigate?.Invoke("Invoices"));
-        var btnReconcile = CreateActionButton("🔄 Đối soát Sao kê", () => _onNavigate?.Invoke("Reconcile"));
-        var btnMaintenance = CreateActionButton("🛠️ Báo hỏng / Sự cố", () => _onNavigate?.Invoke("Maintenance"));
-        var btnStudents = CreateActionButton("👥 Quản lý Sinh viên", () => _onNavigate?.Invoke("Students"));
+        var btnAlloc = CreateActionButton("Xếp phòng AI", () => _onNavigate?.Invoke("Allocation"));
+        var btnMeters = CreateActionButton("Chỉ số Điện Nước", () => _onNavigate?.Invoke("Meters"));
+        var btnInvoices = CreateActionButton("Hóa đơn & VietQR", () => _onNavigate?.Invoke("Invoices"));
+        var btnReconcile = CreateActionButton("Đối soát Sao kê", () => _onNavigate?.Invoke("Reconcile"));
+        var btnMaintenance = CreateActionButton("Báo hỏng / Sự cố", () => _onNavigate?.Invoke("Maintenance"));
+        var btnStudents = CreateActionButton("Quản lý Sinh viên", () => _onNavigate?.Invoke("Students"));
 
         _pnlActionButtons.Controls.AddRange(new Control[] { btnAlloc, btnMeters, btnInvoices, btnReconcile, btnMaintenance, btnStudents });
         _cardQuickActions.Controls.Add(_pnlActionButtons);
@@ -276,7 +276,7 @@ public class DashboardView : UserControl, IThemable
             var bar = new ScottPlot.Bar
             {
                 Position = x,
-                Value = (double)h.TotalRevenue,
+                Value = (double)(h.TotalRevenue / 1_000_000m),
                 FillColor = ScottPlot.Color.FromHex("#8B5CF6"),
                 LineColor = ScottPlot.Color.FromHex("#7C3AED"),
                 LineWidth = 1

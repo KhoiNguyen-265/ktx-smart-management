@@ -50,20 +50,20 @@ public class MainForm : Form, IThemable
 
         _btnCommandPalette = new KButton
         {
-            Text = "🔍 Tìm nhanh [Ctrl+K]...",
+            Text = "Tìm nhanh [Ctrl+K]",
             Style = KButtonStyle.Secondary,
-            Size = new Size(175, 34),
-            Location = new Point(ClientSize.Width - 635, 15),
+            Size = new Size(160, 34),
+            Location = new Point(ClientSize.Width - 620, 15),
             Anchor = AnchorStyles.Top | AnchorStyles.Right
         };
         _btnCommandPalette.Click += (s, e) => ShowCommandPalette();
 
         _btnThemeToggle = new KButton
         {
-            Text = "🌓 Đổi giao diện",
+            Text = "Đổi giao diện",
             Style = KButtonStyle.Secondary,
             Size = new Size(125, 34),
-            Location = new Point(ClientSize.Width - 450, 15),
+            Location = new Point(ClientSize.Width - 445, 15),
             Anchor = AnchorStyles.Top | AnchorStyles.Right
         };
         _btnThemeToggle.Click += (s, e) =>
@@ -74,7 +74,7 @@ public class MainForm : Form, IThemable
 
         _lblUser = new Label
         {
-            Text = "👤 Đang tải...",
+            Text = "Đang tải...",
             Font = UIHelper.GetFont(9.5f, FontStyle.Bold),
             Location = new Point(ClientSize.Width - 300, 22),
             Size = new Size(270, 24),
@@ -106,7 +106,7 @@ public class MainForm : Form, IThemable
     public void InitializeSession(UserSession session)
     {
         _session = session;
-        _lblUser.Text = $"👤 {session.FullName} ({session.RoleName})";
+        _lblUser.Text = $"{session.FullName} ({session.RoleName})";
         NavigateTo("Dashboard");
     }
 

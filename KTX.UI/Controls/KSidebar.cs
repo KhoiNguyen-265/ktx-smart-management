@@ -146,15 +146,17 @@ public class KSidebar : UserControl, IThemable
         }
 
         // App Logo / Title Header
+        using var emojiFont = new Font("Segoe UI Emoji", 12f, FontStyle.Regular);
         using var logoFont = UIHelper.GetFont(13f, FontStyle.Bold);
         using var logoBrush = new SolidBrush(theme.Primary);
         if (!_isCollapsed)
         {
-            g.DrawString("🏠 KTX SMART", logoFont, logoBrush, 20, 24);
+            g.DrawString("🏠", emojiFont, logoBrush, 20, 23);
+            g.DrawString("KTX SMART", logoFont, logoBrush, 46, 24);
         }
         else
         {
-            g.DrawString("🏠", logoFont, logoBrush, 24, 24);
+            g.DrawString("🏠", emojiFont, logoBrush, (Width - 20) / 2, 23);
         }
 
         // Menu Items
@@ -188,9 +190,11 @@ public class KSidebar : UserControl, IThemable
             }
 
             // Draw Icon
-            using var iconFont = UIHelper.GetFont(12f, FontStyle.Regular);
+            using var iconFont = new Font("Segoe UI Emoji", 11.5f, FontStyle.Regular);
             int iconX = _isCollapsed ? (Width - 20) / 2 : 24;
-            g.DrawString(item.IconText, iconFont, Brushes.Black, iconX, itemY + 8);
+            var iconColor = isSelected ? theme.Primary : (isHovered ? theme.TextPrimary : theme.TextSecondary);
+            using var iconBrush = new SolidBrush(iconColor);
+            g.DrawString(item.IconText, iconFont, iconBrush, iconX, itemY + 8);
 
             // Draw Title if expanded
             if (!_isCollapsed)
