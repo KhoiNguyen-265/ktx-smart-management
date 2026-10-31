@@ -3,12 +3,14 @@ using System.Windows.Forms;
 using KTX.Services.Auth;
 using KTX.UI.Controls;
 using KTX.UI.Themes;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace KTX.WinForms.Forms;
 
 public class MainForm : Form, IThemable
 {
     private UserSession? _session;
+    private readonly IServiceProvider _serviceProvider;
     private readonly KSidebar _sidebar;
     private readonly Panel _topbar;
     private readonly Panel _contentPanel;
@@ -16,8 +18,10 @@ public class MainForm : Form, IThemable
     private readonly Label _lblUser;
     private readonly KButton _btnThemeToggle;
 
-    public MainForm()
+    public MainForm(IServiceProvider serviceProvider)
     {
+        _serviceProvider = serviceProvider;
+
         Text = "KTX Smart Management - Hệ thống Quản lý Ký túc xá Thông minh";
         ClientSize = new Size(1280, 760);
         MinimumSize = new Size(1100, 680);
@@ -103,6 +107,27 @@ public class MainForm : Form, IThemable
     {
         _contentPanel.Controls.Clear();
         _lblBreadcrumb.Text = $"Trang chủ / {_sidebar.SelectedKey}";
+
+        if (key == "Rooms")
+        {
+            var roomsView = _serviceProvider.GetRequiredService<Views.RoomsView>();
+            _contentPanel.Controls.Add(roomsView);
+            return;
+        }
+
+        if (key == "Students")
+        {
+            var studentsView = _serviceProvider.GetRequiredService<Views.StudentsView>();
+            _contentPanel.Controls.Add(studentsView);
+            return;
+        }
+
+        if (key == "Settings")
+        {
+            var settingsView = _serviceProvider.GetRequiredService<Views.SettingsView>();
+            _contentPanel.Controls.Add(settingsView);
+            return;
+        }
 
         // Placeholder content card until specific feature UserControls are loaded
         var welcomeCard = new KCard

@@ -56,8 +56,14 @@ static class Program
         services.AddSingleton<IConfiguration>(configuration);
         services.AddSingleton<IFormFactory, FormFactory>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<KTX.Services.Facility.IRoomService, KTX.Services.Facility.RoomService>();
+        services.AddScoped<KTX.Services.Students.IStudentService, KTX.Services.Students.StudentService>();
+        services.AddScoped<KTX.Services.Configuration.IConfigurationService, KTX.Services.Configuration.ConfigurationService>();
 
-        // Đăng ký Forms
+        // Đăng ký Views & Forms
+        services.AddTransient<Views.RoomsView>();
+        services.AddTransient<Views.StudentsView>();
+        services.AddTransient<Views.SettingsView>();
         services.AddTransient<Forms.LoginForm>();
         services.AddTransient<Forms.MainForm>();
 
