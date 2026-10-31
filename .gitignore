@@ -44,5 +44,9 @@ appsettings.Development.json
 appsettings.local.json
 secrets.json
 
-# Office temporary files
+# Office temporary files & legacy docs
 ~$*
+*.docx
+*.doc
+*.docm
+
