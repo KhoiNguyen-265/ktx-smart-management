@@ -66,14 +66,13 @@ public class KTextBox : UserControl, IThemable
 
         DoubleBuffered = true;
         Padding = new Padding(10, 8, 10, 8);
-        Size = new Size(250, 40);
 
         _innerBox = new TextBox
         {
             BorderStyle = BorderStyle.None,
             Font = UIHelper.GetFont(10f),
             Location = new Point(12, 10),
-            Width = Width - 24
+            Width = 226
         };
 
         _innerBox.Enter += (s, e) => { _isFocused = true; Invalidate(); };
@@ -81,15 +80,18 @@ public class KTextBox : UserControl, IThemable
         _innerBox.TextChanged += (s, e) => { OnTextChanged(e); Invalidate(); };
 
         Controls.Add(_innerBox);
+
+        Size = new Size(250, 40);
         AdjustInnerBox();
         ApplyTheme(ThemeManager.Current);
     }
 
     private void AdjustInnerBox()
     {
+        if (_innerBox == null) return;
         int left = _icon != null ? 36 : 12;
         _innerBox.Location = new Point(left, (Height - _innerBox.Height) / 2);
-        _innerBox.Width = Width - left - 12;
+        _innerBox.Width = Math.Max(0, Width - left - 12);
     }
 
     protected override void OnResize(EventArgs e)

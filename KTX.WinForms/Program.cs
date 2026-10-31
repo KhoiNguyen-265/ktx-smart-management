@@ -23,13 +23,15 @@ static class Program
         Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
         Application.ThreadException += (sender, e) =>
         {
-            MessageBox.Show($"Đã xảy ra lỗi hệ thống:\n{e.Exception.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            try { File.WriteAllText("crash.log", e.Exception.ToString()); } catch { }
+            MessageBox.Show($"Đã xảy ra lỗi hệ thống:\n{e.Exception.Message}\n\nChi tiết:\n{e.Exception.StackTrace}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
         };
         AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
         {
             if (e.ExceptionObject is Exception ex)
             {
-                MessageBox.Show($"Lỗi nghiêm trọng:\n{ex.Message}", "Lỗi chí mạng", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                try { File.WriteAllText("crash.log", ex.ToString()); } catch { }
+                MessageBox.Show($"Lỗi nghiêm trọng:\n{ex.Message}\n\nChi tiết:\n{ex.StackTrace}", "Lỗi chí mạng", MessageBoxButtons.OK, MessageBoxIcon.Stop);
             }
         };
 
@@ -100,7 +102,15 @@ static class Program
         }
 
         // 6. Khởi chạy Form Đăng nhập đầu tiên
-        var loginForm = ServiceProvider.GetRequiredService<Forms.LoginForm>();
-        Application.Run(loginForm);
+        try
+        {
+            var loginForm = ServiceProvider.GetRequiredService<Forms.LoginForm>();
+            Application.Run(loginForm);
+        }
+        catch (Exception ex)
+        {
+            try { File.WriteAllText("crash.log", ex.ToString()); } catch { }
+            MessageBox.Show($"Lỗi khởi chạy giao diện:\n{ex.Message}\n\nChi tiết:\n{ex.StackTrace}", "Lỗi chí mạng", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+        }
     }
 }
