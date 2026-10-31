@@ -59,11 +59,14 @@ static class Program
         services.AddScoped<KTX.Services.Facility.IRoomService, KTX.Services.Facility.RoomService>();
         services.AddScoped<KTX.Services.Students.IStudentService, KTX.Services.Students.StudentService>();
         services.AddScoped<KTX.Services.Configuration.IConfigurationService, KTX.Services.Configuration.ConfigurationService>();
+        services.AddScoped<KTX.Services.Registration.IRegistrationService, KTX.Services.Registration.RegistrationService>();
+        services.AddScoped<KTX.Services.Allocation.IAllocationEngine, KTX.Services.Allocation.AllocationEngine>();
 
         // Đăng ký Views & Forms
         services.AddTransient<Views.RoomsView>();
         services.AddTransient<Views.StudentsView>();
         services.AddTransient<Views.SettingsView>();
+        services.AddTransient<Views.AllocationWizardView>();
         services.AddTransient<Forms.LoginForm>();
         services.AddTransient<Forms.MainForm>();
 

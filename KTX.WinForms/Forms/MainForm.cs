@@ -122,6 +122,13 @@ public class MainForm : Form, IThemable
             return;
         }
 
+        if (key == "Allocation")
+        {
+            var wizardView = _serviceProvider.GetRequiredService<Views.AllocationWizardView>();
+            _contentPanel.Controls.Add(wizardView);
+            return;
+        }
+
         if (key == "Settings")
         {
             var settingsView = _serviceProvider.GetRequiredService<Views.SettingsView>();
