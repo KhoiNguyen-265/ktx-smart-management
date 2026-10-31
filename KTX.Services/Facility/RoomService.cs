@@ -46,6 +46,40 @@ public class RoomService : IRoomService
             .ToListAsync(ct);
     }
 
+    public async Task<List<RoomSummaryDto>> GetAllRoomsAsync(CancellationToken ct = default)
+    {
+        await using var db = await _contextFactory.CreateDbContextAsync(ct);
+
+        var rooms = await db.Phongs.AsNoTracking()
+            .OrderBy(p => p.ToaId).ThenBy(p => p.MaPhong)
+            .Select(p => new
+            {
+                p.Id,
+                p.MaPhong,
+                p.ToaId,
+                ToaTen = p.ToaNha.Ten,
+                p.Tang,
+                LoaiPhongTen = p.LoaiPhong.Ten,
+                p.LoaiPhong.SucChua,
+                OccupiedCount = p.HopDongs.Count(h => h.TrangThai == TrangThaiHopDong.HieuLuc),
+                p.TrangThai
+            })
+            .ToListAsync(ct);
+
+        return rooms.Select(r => new RoomSummaryDto
+        {
+            Id = r.Id,
+            MaPhong = r.MaPhong,
+            ToaId = r.ToaId,
+            TenToa = r.ToaTen,
+            Tang = r.Tang,
+            TenLoaiPhong = r.LoaiPhongTen,
+            SucChua = r.SucChua,
+            SoNguoiDangO = r.OccupiedCount,
+            TrangThai = r.TrangThai
+        }).ToList();
+    }
+
     public async Task<List<RoomSummaryDto>> GetRoomsByBuildingAndFloorAsync(int buildingId, int floor, CancellationToken ct = default)
     {
         await using var db = await _contextFactory.CreateDbContextAsync(ct);

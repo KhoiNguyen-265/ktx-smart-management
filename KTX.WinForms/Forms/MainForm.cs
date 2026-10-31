@@ -16,6 +16,7 @@ public class MainForm : Form, IThemable
     private readonly Panel _contentPanel;
     private readonly Label _lblBreadcrumb;
     private readonly Label _lblUser;
+    private readonly KButton _btnCommandPalette;
     private readonly KButton _btnThemeToggle;
 
     public MainForm(IServiceProvider serviceProvider)
@@ -47,6 +48,16 @@ public class MainForm : Form, IThemable
             AutoSize = true
         };
 
+        _btnCommandPalette = new KButton
+        {
+            Text = "🔍 Tìm nhanh [Ctrl+K]...",
+            Style = KButtonStyle.Secondary,
+            Size = new Size(175, 34),
+            Location = new Point(ClientSize.Width - 635, 15),
+            Anchor = AnchorStyles.Top | AnchorStyles.Right
+        };
+        _btnCommandPalette.Click += (s, e) => ShowCommandPalette();
+
         _btnThemeToggle = new KButton
         {
             Text = "🌓 Đổi giao diện",
@@ -72,6 +83,7 @@ public class MainForm : Form, IThemable
         };
 
         _topbar.Controls.Add(_lblBreadcrumb);
+        _topbar.Controls.Add(_btnCommandPalette);
         _topbar.Controls.Add(_btnThemeToggle);
         _topbar.Controls.Add(_lblUser);
 
@@ -103,10 +115,18 @@ public class MainForm : Form, IThemable
         NavigateTo(key);
     }
 
-    private void NavigateTo(string key)
+    public void NavigateTo(string key)
     {
         _contentPanel.Controls.Clear();
+        _sidebar.SelectedKey = key;
         _lblBreadcrumb.Text = $"Trang chủ / {_sidebar.SelectedKey}";
+
+        if (key == "Dashboard")
+        {
+            var dash = new Views.DashboardView(_serviceProvider.GetRequiredService<KTX.Services.Dashboard.IDashboardService>(), NavigateTo);
+            _contentPanel.Controls.Add(dash);
+            return;
+        }
 
         if (key == "Rooms")
         {
@@ -154,6 +174,20 @@ public class MainForm : Form, IThemable
         {
             var reconcileView = _serviceProvider.GetRequiredService<Views.ReconciliationView>();
             _contentPanel.Controls.Add(reconcileView);
+            return;
+        }
+
+        if (key == "Maintenance")
+        {
+            var maintenanceView = _serviceProvider.GetRequiredService<Views.MaintenanceView>();
+            _contentPanel.Controls.Add(maintenanceView);
+            return;
+        }
+
+        if (key == "Reports")
+        {
+            var reportsView = _serviceProvider.GetRequiredService<Views.ReportsView>();
+            _contentPanel.Controls.Add(reportsView);
             return;
         }
 
@@ -214,6 +248,34 @@ public class MainForm : Form, IThemable
 
         _contentPanel.Controls.Add(statPanel);
         _contentPanel.Controls.Add(welcomeCard);
+    }
+
+    protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+    {
+        if (keyData == (Keys.Control | Keys.K))
+        {
+            ShowCommandPalette();
+            return true;
+        }
+        return base.ProcessCmdKey(ref msg, keyData);
+    }
+
+    private void ShowCommandPalette()
+    {
+        using var dlg = new CommandPaletteDialog();
+        if (dlg.ShowDialog(this) == DialogResult.OK && dlg.SelectedCommand != null)
+        {
+            var cmd = dlg.SelectedCommand;
+            if (cmd.ActionKey == "ToggleTheme")
+            {
+                ThemeManager.ToggleTheme();
+                ApplyThemeRecursively(this);
+            }
+            else
+            {
+                NavigateTo(cmd.ActionKey);
+            }
+        }
     }
 
     public void ApplyTheme(Theme theme)

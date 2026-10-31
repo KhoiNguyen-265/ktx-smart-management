@@ -64,6 +64,7 @@ public class KSidebar : UserControl, IThemable
         _items.Add(new SidebarItem { Key = "Meters", Title = "Chỉ số Điện Nước", IconText = "⚡" });
         _items.Add(new SidebarItem { Key = "Invoices", Title = "Hóa đơn & VietQR", IconText = "💳" });
         _items.Add(new SidebarItem { Key = "Reconcile", Title = "Đối soát Sao kê", IconText = "🔄" });
+        _items.Add(new SidebarItem { Key = "Maintenance", Title = "Sự cố & Sửa chữa", IconText = "🛠️" });
         _items.Add(new SidebarItem { Key = "Reports", Title = "Báo cáo Thống kê", IconText = "📈" });
         _items.Add(new SidebarItem { Key = "Settings", Title = "Cấu hình Hệ thống", IconText = "⚙" });
     }

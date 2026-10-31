@@ -64,8 +64,12 @@ static class Program
         services.AddScoped<KTX.Services.Contracts.IContractService, KTX.Services.Contracts.ContractService>();
         services.AddScoped<KTX.Services.Finance.ITieredBillingService, KTX.Services.Finance.TieredBillingService>();
         services.AddScoped<KTX.Services.Finance.IReconciliationService, KTX.Services.Finance.ReconciliationService>();
+        services.AddScoped<KTX.Services.Facility.IMaintenanceService, KTX.Services.Facility.MaintenanceService>();
+        services.AddScoped<KTX.Services.Dashboard.IDashboardService, KTX.Services.Dashboard.DashboardService>();
+        services.AddScoped<KTX.Services.Reporting.IReportingService, KTX.Services.Reporting.ReportingService>();
 
         // Đăng ký Views & Forms
+        services.AddTransient<Views.DashboardView>();
         services.AddTransient<Views.RoomsView>();
         services.AddTransient<Views.StudentsView>();
         services.AddTransient<Views.SettingsView>();
@@ -74,6 +78,8 @@ static class Program
         services.AddTransient<Views.UtilityMetersView>();
         services.AddTransient<Views.InvoicesView>();
         services.AddTransient<Views.ReconciliationView>();
+        services.AddTransient<Views.MaintenanceView>();
+        services.AddTransient<Views.ReportsView>();
         services.AddTransient<Forms.LoginForm>();
         services.AddTransient<Forms.MainForm>();
 

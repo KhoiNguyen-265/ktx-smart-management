@@ -19,6 +19,7 @@ public class StudentsView : UserControl, IThemable
     private readonly KButton _btnExportExcel;
     private readonly KButton _btnImportExcel;
     private readonly KButton _btnTemplateExcel;
+    private readonly KButton _btnScanCccd;
 
     private int _currentPage = 1;
     private int _pageSize = 20;
@@ -75,14 +76,24 @@ public class StudentsView : UserControl, IThemable
             Text = "📋 Tải mẫu Excel",
             Style = KButtonStyle.Secondary,
             Location = new Point(630, 8),
-            Size = new Size(140, 40)
+            Size = new Size(130, 40)
         };
         _btnTemplateExcel.Click += async (s, e) => await HandleDownloadTemplateAsync();
+
+        _btnScanCccd = new KButton
+        {
+            Text = "📷 Quét QR CCCD",
+            Style = KButtonStyle.Primary,
+            Location = new Point(770, 8),
+            Size = new Size(150, 40)
+        };
+        _btnScanCccd.Click += (s, e) => HandleScanCccd();
 
         topBar.Controls.Add(_txtSearch);
         topBar.Controls.Add(_btnExportExcel);
         topBar.Controls.Add(_btnImportExcel);
         topBar.Controls.Add(_btnTemplateExcel);
+        topBar.Controls.Add(_btnScanCccd);
 
         // DataGridView
         _grid = new DataGridView
@@ -274,6 +285,31 @@ public class StudentsView : UserControl, IThemable
         catch (Exception ex)
         {
             MessageBox.Show($"Lỗi tải file mẫu:\n{ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private void HandleScanCccd()
+    {
+        using var dlg = new Forms.CccdScannerDialog();
+        if (dlg.ShowDialog() == DialogResult.OK && dlg.ScannedResult != null)
+        {
+            var scanned = dlg.ScannedResult;
+            var confirm = MessageBox.Show(
+                $"Đã trích xuất thông tin Căn cước công dân:\n\n" +
+                $"• Họ tên: {scanned.HoTen}\n" +
+                $"• Số CCCD: {scanned.CCCD}\n" +
+                $"• Giới tính: {(scanned.GioiTinh == Domain.Enums.GioiTinh.Nu ? "Nữ" : "Nam")}\n" +
+                $"• Ngày sinh: {(scanned.NgaySinh.HasValue ? scanned.NgaySinh.Value.ToString("dd/MM/yyyy") : "---")}\n" +
+                $"• Quê quán: {scanned.TenTinhThanhNhanDien ?? scanned.DiaChi}\n\n" +
+                $"Bạn có muốn tự động tìm kiếm hồ sơ của sinh viên này trong danh sách không?",
+                "Kết quả quét CCCD thành công",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Information);
+
+            if (confirm == DialogResult.Yes)
+            {
+                _txtSearch.Text = scanned.CCCD;
+            }
         }
     }
 
