@@ -255,7 +255,7 @@ public class MaintenanceView : UserControl, IThemable
             return;
         }
 
-        int reqId = (int)_grid.SelectedRows[0].Cells[0].Value;
+        int reqId = Convert.ToInt32(_grid.SelectedRows[0].Cells[0].Value);
         var req = _requests.FirstOrDefault(r => r.Id == reqId);
         if (req == null) return;
 
