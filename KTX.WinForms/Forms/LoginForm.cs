@@ -113,12 +113,12 @@ public class LoginForm : Form, IThemable
         };
         _btnLogin.Click += async (s, e) => await HandleLoginAsync();
 
-        // Quick login sample buttons for professors during evaluation
+        // Quick login sample buttons for all 4 roles (Admin, Quản lý, Kế toán, Sinh viên)
         var lblQuick = new Label
         {
-            Text = "Đăng nhập nhanh tài khoản mẫu:",
-            Font = UIHelper.GetFont(8.8f, FontStyle.Italic),
-            Location = new Point(48, 422),
+            Text = "Đăng nhập nhanh tài khoản mẫu (hoặc nhập MSSV, MK: 123456):",
+            Font = UIHelper.GetFont(8.5f, FontStyle.Italic),
+            Location = new Point(48, 418),
             AutoSize = true
         };
 
@@ -126,9 +126,9 @@ public class LoginForm : Form, IThemable
         {
             Text = "Admin",
             Style = KButtonStyle.Secondary,
-            Location = new Point(48, 448),
-            Size = new Size(124, 36),
-            Font = UIHelper.GetFont(9f, FontStyle.Bold)
+            Location = new Point(48, 446),
+            Size = new Size(94, 36),
+            Font = UIHelper.GetFont(8.8f, FontStyle.Bold)
         };
         btnQuickAdmin.Click += (s, e) =>
         {
@@ -140,9 +140,9 @@ public class LoginForm : Form, IThemable
         {
             Text = "Quản lý",
             Style = KButtonStyle.Secondary,
-            Location = new Point(186, 448),
-            Size = new Size(124, 36),
-            Font = UIHelper.GetFont(9f, FontStyle.Bold)
+            Location = new Point(150, 446),
+            Size = new Size(94, 36),
+            Font = UIHelper.GetFont(8.8f, FontStyle.Bold)
         };
         btnQuickQuanLy.Click += (s, e) =>
         {
@@ -154,14 +154,28 @@ public class LoginForm : Form, IThemable
         {
             Text = "Kế toán",
             Style = KButtonStyle.Secondary,
-            Location = new Point(324, 448),
-            Size = new Size(124, 36),
-            Font = UIHelper.GetFont(9f, FontStyle.Bold)
+            Location = new Point(252, 446),
+            Size = new Size(94, 36),
+            Font = UIHelper.GetFont(8.8f, FontStyle.Bold)
         };
         btnQuickKeToan.Click += (s, e) =>
         {
             _txtUsername.Text = "ketoan";
             _txtPassword.Text = "ketoan123";
+        };
+
+        var btnQuickSinhVien = new KButton
+        {
+            Text = "Sinh viên",
+            Style = KButtonStyle.Secondary,
+            Location = new Point(354, 446),
+            Size = new Size(94, 36),
+            Font = UIHelper.GetFont(8.8f, FontStyle.Bold)
+        };
+        btnQuickSinhVien.Click += (s, e) =>
+        {
+            _txtUsername.Text = "sinhvien";
+            _txtPassword.Text = "sinhvien123";
         };
 
         // Key down enter
@@ -174,7 +188,7 @@ public class LoginForm : Form, IThemable
             lblUserTag, _txtUsername,
             lblPassTag, _txtPassword,
             _lblError, _btnLogin,
-            lblQuick, btnQuickAdmin, btnQuickQuanLy, btnQuickKeToan
+            lblQuick, btnQuickAdmin, btnQuickQuanLy, btnQuickKeToan, btnQuickSinhVien
         });
 
         Controls.Add(_rightPanel);
@@ -262,7 +276,21 @@ public class LoginForm : Form, IThemable
             // Login succeeded, open MainForm
             var mainForm = _formFactory.Create<MainForm>();
             mainForm.InitializeSession(result.Session!);
-            mainForm.FormClosed += (s, e) => Close();
+            mainForm.FormClosed += (s, e) =>
+            {
+                if (mainForm.IsLogoutRequested)
+                {
+                    _txtPassword.Text = string.Empty;
+                    _lblError.Text = string.Empty;
+                    Show();
+                    Activate();
+                    _txtUsername.InnerTextBox.Focus();
+                }
+                else
+                {
+                    Close();
+                }
+            };
             Hide();
             mainForm.Show();
         }

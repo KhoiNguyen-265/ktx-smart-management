@@ -60,6 +60,7 @@ static class Program
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<KTX.Services.Facility.IRoomService, KTX.Services.Facility.RoomService>();
         services.AddScoped<KTX.Services.Students.IStudentService, KTX.Services.Students.StudentService>();
+        services.AddScoped<KTX.Services.Students.IStudentPortalService, KTX.Services.Students.StudentPortalService>();
         services.AddScoped<KTX.Services.Configuration.IConfigurationService, KTX.Services.Configuration.ConfigurationService>();
         services.AddScoped<KTX.Services.Registration.IRegistrationService, KTX.Services.Registration.RegistrationService>();
         services.AddScoped<KTX.Services.Allocation.IAllocationEngine, KTX.Services.Allocation.AllocationEngine>();

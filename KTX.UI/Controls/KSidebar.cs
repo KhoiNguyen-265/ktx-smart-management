@@ -58,34 +58,76 @@ public class KSidebar : UserControl, IThemable
 
     private void InitializeDefaultItems()
     {
-        if (HasMdl2)
+        ConfigureForRole("Admin");
+    }
+
+    public void ConfigureForRole(string roleName)
+    {
+        _items.Clear();
+        _hoveredIndex = -1;
+
+        if (string.Equals(roleName, "SinhVien", StringComparison.OrdinalIgnoreCase))
         {
-            _items.Add(new SidebarItem { Key = "Dashboard", Title = "Tổng quan", IconText = "\uE9F9" });
-            _items.Add(new SidebarItem { Key = "Rooms", Title = "Tòa & Phòng", IconText = "\uE825" });
-            _items.Add(new SidebarItem { Key = "Students", Title = "Sinh viên", IconText = "\uE77B" });
-            _items.Add(new SidebarItem { Key = "Allocation", Title = "Xếp phòng AI", IconText = "\uE8EC" });
-            _items.Add(new SidebarItem { Key = "Contracts", Title = "Hợp đồng", IconText = "\uE8A5" });
-            _items.Add(new SidebarItem { Key = "Meters", Title = "Chỉ số Điện Nước", IconText = "\uE945" });
-            _items.Add(new SidebarItem { Key = "Invoices", Title = "Hóa đơn & VietQR", IconText = "\uE8C7" });
-            _items.Add(new SidebarItem { Key = "Reconcile", Title = "Đối soát Sao kê", IconText = "\uE777" });
-            _items.Add(new SidebarItem { Key = "Maintenance", Title = "Sự cố & Sửa chữa", IconText = "\uE90F" });
-            _items.Add(new SidebarItem { Key = "Reports", Title = "Báo cáo Thống kê", IconText = "\uE9D9" });
-            _items.Add(new SidebarItem { Key = "Settings", Title = "Cấu hình Hệ thống", IconText = "\uE713" });
+            AddItem("StudentHome", "Phòng & Hợp đồng", "\uE80F", "⌂");
+            AddItem("StudentBills", "Hóa đơn & VietQR", "\uE8C7", "₫");
+            AddItem("StudentMaintenance", "Báo hỏng phòng", "\uE90F", "⚙");
+            _selectedKey = "StudentHome";
+            Invalidate();
+            return;
         }
-        else
+
+        if (string.Equals(roleName, "KeToan", StringComparison.OrdinalIgnoreCase))
         {
-            _items.Add(new SidebarItem { Key = "Dashboard", Title = "Tổng quan", IconText = "▦" });
-            _items.Add(new SidebarItem { Key = "Rooms", Title = "Tòa & Phòng", IconText = "⊞" });
-            _items.Add(new SidebarItem { Key = "Students", Title = "Sinh viên", IconText = "●" });
-            _items.Add(new SidebarItem { Key = "Allocation", Title = "Xếp phòng AI", IconText = "◈" });
-            _items.Add(new SidebarItem { Key = "Contracts", Title = "Hợp đồng", IconText = "≡" });
-            _items.Add(new SidebarItem { Key = "Meters", Title = "Chỉ số Điện Nước", IconText = "⚡" });
-            _items.Add(new SidebarItem { Key = "Invoices", Title = "Hóa đơn & VietQR", IconText = "₫" });
-            _items.Add(new SidebarItem { Key = "Reconcile", Title = "Đối soát Sao kê", IconText = "↺" });
-            _items.Add(new SidebarItem { Key = "Maintenance", Title = "Sự cố & Sửa chữa", IconText = "⚙" });
-            _items.Add(new SidebarItem { Key = "Reports", Title = "Báo cáo Thống kê", IconText = "▲" });
-            _items.Add(new SidebarItem { Key = "Settings", Title = "Cấu hình Hệ thống", IconText = "⚙" });
+            AddItem("Dashboard", "Tổng quan", "\uE9F9", "▦");
+            AddItem("Contracts", "Hợp đồng", "\uE8A5", "≡");
+            AddItem("Meters", "Chỉ số Điện Nước", "\uE945", "⚡");
+            AddItem("Invoices", "Hóa đơn & VietQR", "\uE8C7", "₫");
+            AddItem("Reconcile", "Đối soát Sao kê", "\uE777", "↺");
+            AddItem("Reports", "Báo cáo Thống kê", "\uE9D9", "▲");
+            _selectedKey = "Dashboard";
+            Invalidate();
+            return;
         }
+
+        if (string.Equals(roleName, "QuanLy", StringComparison.OrdinalIgnoreCase))
+        {
+            AddItem("Dashboard", "Tổng quan", "\uE9F9", "▦");
+            AddItem("Rooms", "Tòa & Phòng", "\uE825", "⊞");
+            AddItem("Students", "Sinh viên", "\uE77B", "●");
+            AddItem("Allocation", "Xếp phòng AI", "\uE8EC", "◈");
+            AddItem("Contracts", "Hợp đồng", "\uE8A5", "≡");
+            AddItem("Meters", "Chỉ số Điện Nước", "\uE945", "⚡");
+            AddItem("Maintenance", "Sự cố & Sửa chữa", "\uE90F", "⚙");
+            AddItem("Reports", "Báo cáo Thống kê", "\uE9D9", "▲");
+            _selectedKey = "Dashboard";
+            Invalidate();
+            return;
+        }
+
+        // Admin: Toàn quyền 11 phân hệ
+        AddItem("Dashboard", "Tổng quan", "\uE9F9", "▦");
+        AddItem("Rooms", "Tòa & Phòng", "\uE825", "⊞");
+        AddItem("Students", "Sinh viên", "\uE77B", "●");
+        AddItem("Allocation", "Xếp phòng AI", "\uE8EC", "◈");
+        AddItem("Contracts", "Hợp đồng", "\uE8A5", "≡");
+        AddItem("Meters", "Chỉ số Điện Nước", "\uE945", "⚡");
+        AddItem("Invoices", "Hóa đơn & VietQR", "\uE8C7", "₫");
+        AddItem("Reconcile", "Đối soát Sao kê", "\uE777", "↺");
+        AddItem("Maintenance", "Sự cố & Sửa chữa", "\uE90F", "⚙");
+        AddItem("Reports", "Báo cáo Thống kê", "\uE9D9", "▲");
+        AddItem("Settings", "Cấu hình Hệ thống", "\uE713", "⚙");
+        _selectedKey = "Dashboard";
+        Invalidate();
+    }
+
+    private void AddItem(string key, string title, string mdl2Glyph, string fallbackGlyph)
+    {
+        _items.Add(new SidebarItem
+        {
+            Key = key,
+            Title = title,
+            IconText = HasMdl2 ? mdl2Glyph : fallbackGlyph
+        });
     }
 
     public void ApplyTheme(Theme theme)

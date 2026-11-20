@@ -20,9 +20,11 @@ public class UserSession
     public string FullName { get; set; } = string.Empty;
     public int RoleId { get; set; }
     public string RoleName { get; set; } = string.Empty;
+    public string? LinkedMssv { get; set; }
 }
 
 public interface IAuthService
 {
     Task<LoginResult> LoginAsync(LoginRequest request, CancellationToken ct = default);
+    Task LogoutAsync(UserSession session, CancellationToken ct = default);
 }

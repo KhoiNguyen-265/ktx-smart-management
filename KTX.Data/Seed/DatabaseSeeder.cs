@@ -49,6 +49,28 @@ public static class DatabaseSeeder
             await db.SaveChangesAsync();
         }
 
+        // 1.1 Đảm bảo tồn tại vai trò SinhVien & tài khoản sinh viên mẫu (tương thích cả CSDL đã tạo trước đó)
+        var studentRole = await db.VaiTros.FirstOrDefaultAsync(v => v.TenVaiTro == "SinhVien");
+        if (studentRole == null)
+        {
+            studentRole = new VaiTro { TenVaiTro = "SinhVien" };
+            db.VaiTros.Add(studentRole);
+            await db.SaveChangesAsync();
+        }
+
+        if (!await db.NguoiDungs.AnyAsync(u => u.TenDangNhap == "sinhvien"))
+        {
+            db.NguoiDungs.Add(new NguoiDung
+            {
+                TenDangNhap = "sinhvien",
+                MatKhauHash = BCrypt.Net.BCrypt.HashPassword("sinhvien123"),
+                HoTen = "Sinh viên Nội trú KTX",
+                MaVaiTro = studentRole.Id,
+                HoatDong = true
+            });
+            await db.SaveChangesAsync();
+        }
+
         // 2. Seed System Config
         if (!await db.CauHinhs.AnyAsync())
         {

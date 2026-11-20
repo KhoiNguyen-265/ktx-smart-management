@@ -11,6 +11,7 @@ public class MainForm : Form, IThemable
 {
     private UserSession? _session;
     private readonly IServiceProvider _serviceProvider;
+    private readonly IAuthService _authService;
     private readonly KSidebar _sidebar;
     private readonly Panel _topbar;
     private readonly Panel _contentPanel;
@@ -18,13 +19,17 @@ public class MainForm : Form, IThemable
     private readonly Label _lblUser;
     private readonly KButton _btnCommandPalette;
     private readonly KButton _btnThemeToggle;
+    private readonly KButton _btnLogout;
 
     private readonly FlowLayoutPanel _topbarRightPanel;
     private readonly Action _themeChangedHandler;
 
-    public MainForm(IServiceProvider serviceProvider)
+    public bool IsLogoutRequested { get; private set; }
+
+    public MainForm(IServiceProvider serviceProvider, IAuthService authService)
     {
         _serviceProvider = serviceProvider;
+        _authService = authService;
 
         Text = "KTX Smart Management - Hệ thống Quản lý Ký túc xá Thông minh";
         ClientSize = new Size(1340, 780);
@@ -94,13 +99,24 @@ public class MainForm : Form, IThemable
             Text = "Đang tải...",
             Font = UIHelper.GetFont(9.5f, FontStyle.Bold),
             AutoSize = true,
-            Padding = new Padding(4, 8, 4, 0),
+            Padding = new Padding(4, 8, 10, 0),
             TextAlign = ContentAlignment.MiddleRight
         };
+
+        _btnLogout = new KButton
+        {
+            Text = "Đăng xuất",
+            Style = KButtonStyle.Danger,
+            Size = new Size(98, 36),
+            Font = UIHelper.GetFont(9f, FontStyle.Bold),
+            Margin = new Padding(0)
+        };
+        _btnLogout.Click += async (s, e) => await HandleLogoutAsync();
 
         _topbarRightPanel.Controls.Add(_btnCommandPalette);
         _topbarRightPanel.Controls.Add(_btnThemeToggle);
         _topbarRightPanel.Controls.Add(_lblUser);
+        _topbarRightPanel.Controls.Add(_btnLogout);
 
         _topbar.Controls.Add(_topbarRightPanel);
         _topbar.Controls.Add(_lblBreadcrumb);
@@ -126,8 +142,50 @@ public class MainForm : Form, IThemable
     public void InitializeSession(UserSession session)
     {
         _session = session;
-        _lblUser.Text = $"{session.FullName} ({session.RoleName})";
-        NavigateTo("Dashboard");
+        string roleDisplay = session.RoleName switch
+        {
+            "Admin" => "Quản trị viên",
+            "QuanLy" => "Quản lý KTX",
+            "KeToan" => "Kế toán",
+            "SinhVien" => "Sinh viên KTX",
+            _ => session.RoleName
+        };
+
+        _lblUser.Text = session.RoleName == "SinhVien" && !string.IsNullOrEmpty(session.LinkedMssv)
+            ? $"{session.FullName} ({session.LinkedMssv} · {roleDisplay})"
+            : $"{session.FullName} ({roleDisplay})";
+
+        _sidebar.ConfigureForRole(session.RoleName);
+
+        if (session.RoleName == "SinhVien")
+        {
+            Text = "KTX Smart Management - Cổng Thông Tin Sinh Viên Nội Trú";
+            NavigateTo("StudentHome");
+        }
+        else
+        {
+            Text = "KTX Smart Management - Hệ thống Quản lý Ký túc xá Thông minh";
+            NavigateTo("Dashboard");
+        }
+    }
+
+    private async Task HandleLogoutAsync()
+    {
+        var confirm = MessageBox.Show(
+            $"Bạn có chắc chắn muốn đăng xuất khỏi tài khoản \"{_session?.FullName ?? _session?.Username}\"?",
+            "Xác nhận đăng xuất",
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Question);
+
+        if (confirm != DialogResult.Yes) return;
+
+        if (_session != null)
+        {
+            await _authService.LogoutAsync(_session);
+        }
+
+        IsLogoutRequested = true;
+        Close();
     }
 
     private void Sidebar_MenuItemSelected(string key)
@@ -146,6 +204,9 @@ public class MainForm : Form, IThemable
 
         string pageTitle = key switch
         {
+            "StudentHome" => "Cổng Sinh viên / Phòng & Hợp đồng",
+            "StudentBills" => "Cổng Sinh viên / Hóa đơn & VietQR",
+            "StudentMaintenance" => "Cổng Sinh viên / Báo hỏng phòng",
             "Dashboard" => "Tổng quan",
             "Rooms" => "Tòa & Phòng",
             "Students" => "Quản lý Sinh viên",
@@ -159,7 +220,40 @@ public class MainForm : Form, IThemable
             "Settings" => "Cấu hình Hệ thống",
             _ => key
         };
-        _lblBreadcrumb.Text = $"Trang chủ / {pageTitle}";
+        _lblBreadcrumb.Text = key.StartsWith("Student") ? pageTitle : $"Trang chủ / {pageTitle}";
+
+        if (key == "StudentHome")
+        {
+            var mssv = _session?.LinkedMssv ?? _session?.Username ?? string.Empty;
+            var view = new Views.StudentHomeView(
+                _serviceProvider.GetRequiredService<KTX.Services.Students.IStudentPortalService>(),
+                _serviceProvider.GetRequiredService<KTX.Services.Contracts.IContractService>(),
+                mssv,
+                NavigateTo);
+            _contentPanel.Controls.Add(view);
+            return;
+        }
+
+        if (key == "StudentBills")
+        {
+            var mssv = _session?.LinkedMssv ?? _session?.Username ?? string.Empty;
+            var view = new Views.StudentBillsView(
+                _serviceProvider.GetRequiredService<KTX.Services.Students.IStudentPortalService>(),
+                _serviceProvider.GetRequiredService<KTX.Services.Configuration.IConfigurationService>(),
+                mssv);
+            _contentPanel.Controls.Add(view);
+            return;
+        }
+
+        if (key == "StudentMaintenance")
+        {
+            var mssv = _session?.LinkedMssv ?? _session?.Username ?? string.Empty;
+            var view = new Views.StudentMaintenanceView(
+                _serviceProvider.GetRequiredService<KTX.Services.Students.IStudentPortalService>(),
+                mssv);
+            _contentPanel.Controls.Add(view);
+            return;
+        }
 
         if (key == "Dashboard")
         {
@@ -300,9 +394,9 @@ public class MainForm : Form, IThemable
         return base.ProcessCmdKey(ref msg, keyData);
     }
 
-    private void ShowCommandPalette()
+    private async void ShowCommandPalette()
     {
-        using var dlg = new CommandPaletteDialog();
+        using var dlg = new CommandPaletteDialog(roleName: _session?.RoleName ?? "Admin");
         if (dlg.ShowDialog(this) == DialogResult.OK && dlg.SelectedCommand != null)
         {
             var cmd = dlg.SelectedCommand;
@@ -310,6 +404,10 @@ public class MainForm : Form, IThemable
             {
                 ThemeManager.ToggleTheme();
                 ApplyThemeRecursively(this);
+            }
+            else if (cmd.ActionKey == "Logout")
+            {
+                await HandleLogoutAsync();
             }
             else
             {

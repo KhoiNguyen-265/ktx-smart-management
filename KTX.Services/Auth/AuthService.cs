@@ -26,12 +26,43 @@ public class AuthService : IAuthService
 
         await using var db = await _contextFactory.CreateDbContextAsync(ct);
 
+        var normalizedUsername = request.Username.Trim();
+
         var user = await db.NguoiDungs
             .Include(u => u.VaiTro)
-            .FirstOrDefaultAsync(u => u.TenDangNhap == request.Username.Trim(), ct);
+            .FirstOrDefaultAsync(u => u.TenDangNhap == normalizedUsername, ct);
 
         if (user == null)
         {
+            // Hỗ trợ sinh viên đăng nhập trực tiếp bằng MSSV (mật khẩu mặc định 123456 hoặc 6 số cuối CCCD)
+            var student = await db.SinhViens.AsNoTracking()
+                .FirstOrDefaultAsync(s => s.MSSV.ToUpper() == normalizedUsername.ToUpper(), ct);
+
+            if (student != null)
+            {
+                string cccdSuffix = student.CCCD.Length >= 6 ? student.CCCD[^6..] : student.CCCD;
+                if (request.Password == "123456" || request.Password == cccdSuffix)
+                {
+                    var svRole = await db.VaiTros.AsNoTracking()
+                        .FirstOrDefaultAsync(v => v.TenVaiTro == "SinhVien", ct);
+
+                    return new LoginResult
+                    {
+                        Success = true,
+                        Message = "Đăng nhập cổng sinh viên thành công.",
+                        Session = new UserSession
+                        {
+                            UserId = 0,
+                            Username = student.MSSV,
+                            FullName = student.HoTen,
+                            RoleId = svRole?.Id ?? 4,
+                            RoleName = "SinhVien",
+                            LinkedMssv = student.MSSV
+                        }
+                    };
+                }
+            }
+
             return new LoginResult
             {
                 Success = false,
@@ -111,6 +142,38 @@ public class AuthService : IAuthService
 
         await db.SaveChangesAsync(ct);
 
+        string? linkedMssv = null;
+        string displayFullName = user.HoTen;
+
+        if (user.VaiTro.TenVaiTro == "SinhVien")
+        {
+            // Tìm sinh viên khớp tên đăng nhập (MSSV) hoặc chọn sinh viên nội trú tiêu biểu có hợp đồng & hóa đơn mẫu
+            var matchedStudent = await db.SinhViens.AsNoTracking()
+                .FirstOrDefaultAsync(s => s.MSSV.ToUpper() == user.TenDangNhap.ToUpper(), ct);
+
+            if (matchedStudent != null)
+            {
+                linkedMssv = matchedStudent.MSSV;
+                displayFullName = matchedStudent.HoTen;
+            }
+            else
+            {
+                // Ưu tiên sinh viên có hợp đồng hiệu lực và có khoản thu tiền phòng chưa đóng để demo VietQR sinh động
+                var demoContract = await db.HopDongs.AsNoTracking()
+                    .Include(h => h.SinhVien)
+                    .Where(h => h.TrangThai == Domain.Enums.TrangThaiHopDong.HieuLuc)
+                    .OrderByDescending(h => db.KhoanThuTienPhongs.Any(k => k.HopDongId == h.Id && k.TrangThai != Domain.Enums.TrangThaiHoaDon.DaThanhToan))
+                    .ThenBy(h => h.Id)
+                    .FirstOrDefaultAsync(ct);
+
+                if (demoContract != null)
+                {
+                    linkedMssv = demoContract.MSSV;
+                    displayFullName = demoContract.SinhVien.HoTen;
+                }
+            }
+        }
+
         return new LoginResult
         {
             Success = true,
@@ -119,10 +182,35 @@ public class AuthService : IAuthService
             {
                 UserId = user.Id,
                 Username = user.TenDangNhap,
-                FullName = user.HoTen,
+                FullName = displayFullName,
                 RoleId = user.MaVaiTro,
-                RoleName = user.VaiTro.TenVaiTro
+                RoleName = user.VaiTro.TenVaiTro,
+                LinkedMssv = linkedMssv
             }
         };
+    }
+
+    public async Task LogoutAsync(UserSession session, CancellationToken ct = default)
+    {
+        try
+        {
+            if (session.UserId <= 0) return;
+
+            await using var db = await _contextFactory.CreateDbContextAsync(ct);
+            db.NhatKys.Add(new NhatKy
+            {
+                NguoiDungId = session.UserId,
+                HanhDong = "Đăng xuất",
+                ChiTiet = $"Người dùng {session.Username} ({session.RoleName}) đã đăng xuất khỏi hệ thống.",
+                BangLienQuan = "NguoiDung",
+                KhoaChinhLienQuan = session.UserId.ToString(),
+                ThoiGian = DateTime.Now
+            });
+            await db.SaveChangesAsync(ct);
+        }
+        catch
+        {
+            // Không chặn quá trình đăng xuất nếu ghi nhật ký gặp sự cố
+        }
     }
 }

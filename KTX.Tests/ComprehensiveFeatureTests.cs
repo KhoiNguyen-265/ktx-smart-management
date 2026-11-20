@@ -49,8 +49,8 @@ public class ComprehensiveFeatureTests
         await DatabaseSeeder.SeedAsync(db);
 
         // Assert: Verify all tables have substantial, realistic data
-        (await db.VaiTros.CountAsync()).Should().Be(3);
-        (await db.NguoiDungs.CountAsync()).Should().Be(3);
+        (await db.VaiTros.CountAsync()).Should().Be(4);
+        (await db.NguoiDungs.CountAsync()).Should().Be(4);
         (await db.ToaNhas.CountAsync()).Should().Be(4);
         (await db.LoaiPhongs.CountAsync()).Should().Be(3);
         (await db.Phongs.CountAsync()).Should().Be(120);
@@ -611,5 +611,80 @@ public class ComprehensiveFeatureTests
         pdfBytes.Should().NotBeNull();
         pdfBytes.Length.Should().BeGreaterThan(3000);
         pdfBytes.Take(4).ToArray().Should().Equal(new byte[] { 0x25, 0x50, 0x44, 0x46 });
+    }
+
+    [Fact]
+    public async Task AuthService_StudentRoleAndDirectMssvLoginAndLogout_ShouldSucceed()
+    {
+        using (var db = new KtxDbContext(_dbOptions))
+        {
+            await DatabaseSeeder.SeedAsync(db);
+        }
+
+        var factory = CreateMockFactory();
+        var authService = new AuthService(factory);
+
+        // 1. Login with demo student account
+        var svDemo = await authService.LoginAsync(new LoginRequest { Username = "sinhvien", Password = "sinhvien123" });
+        svDemo.Success.Should().BeTrue();
+        svDemo.Session!.RoleName.Should().Be("SinhVien");
+        svDemo.Session.LinkedMssv.Should().NotBeNullOrWhiteSpace();
+
+        // 2. Login directly using that student's MSSV & default password 123456
+        var svDirect = await authService.LoginAsync(new LoginRequest { Username = svDemo.Session.LinkedMssv!, Password = "123456" });
+        svDirect.Success.Should().BeTrue();
+        svDirect.Session!.RoleName.Should().Be("SinhVien");
+        svDirect.Session.LinkedMssv.Should().Be(svDemo.Session.LinkedMssv);
+
+        // 3. Logout writes audit trail
+        await authService.LogoutAsync(svDemo.Session);
+        using (var db = new KtxDbContext(_dbOptions))
+        {
+            var hasLogoutLog = await db.NhatKys.AnyAsync(n => n.HanhDong == "Đăng xuất" && n.NguoiDungId == svDemo.Session.UserId);
+            hasLogoutLog.Should().BeTrue();
+        }
+    }
+
+    [Fact]
+    public async Task StudentPortalService_OverviewBillsAndIssueReporting_ShouldWorkEndToEnd()
+    {
+        using (var db = new KtxDbContext(_dbOptions))
+        {
+            await DatabaseSeeder.SeedAsync(db);
+        }
+
+        var factory = CreateMockFactory();
+        var authService = new AuthService(factory);
+        var configService = new ConfigurationService(factory);
+        var portalService = new StudentPortalService(factory, configService);
+
+        var svLogin = await authService.LoginAsync(new LoginRequest { Username = "sinhvien", Password = "sinhvien123" });
+        string mssv = svLogin.Session!.LinkedMssv!;
+
+        // 1. Overview (Profile + Contract + Roommates + Assets)
+        var overview = await portalService.GetOverviewAsync(mssv);
+        overview.Should().NotBeNull();
+        overview!.ActiveContractId.Should().NotBeNull();
+        overview.PhongId.Should().NotBeNull();
+        overview.Roommates.Should().NotBeEmpty();
+        overview.RoomAssets.Should().NotBeEmpty();
+
+        // 2. Personal Room Fees & Room Utility Invoices
+        var fees = await portalService.GetPersonalRoomFeesAsync(mssv);
+        fees.Should().NotBeEmpty();
+        fees.Any(f => f.ConNo > 0 && !string.IsNullOrEmpty(f.VietQrPayload)).Should().BeTrue();
+
+        var utilInvoices = await portalService.GetRoomUtilityInvoicesAsync(mssv);
+        utilInvoices.Should().NotBeNull();
+
+        // 3. Student reports a new room issue
+        var beforeIssues = await portalService.GetRoomMaintenanceRequestsAsync(mssv);
+        var createdIssue = await portalService.ReportRoomIssueAsync(mssv, "Hỏng ổ cắm điện gần giường số 2", "Có mặt sau 17h");
+        createdIssue.Should().NotBeNull();
+        createdIssue.PhongId.Should().Be(overview.PhongId!.Value);
+        createdIssue.TrangThai.Should().Be("ChuaXuLy");
+
+        var afterIssues = await portalService.GetRoomMaintenanceRequestsAsync(mssv);
+        afterIssues.Count.Should().Be(beforeIssues.Count + 1);
     }
 }
