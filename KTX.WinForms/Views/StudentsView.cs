@@ -24,6 +24,7 @@ public class StudentsView : UserControl, IThemable
     private int _currentPage = 1;
     private int _pageSize = 20;
     private int _totalPages = 1;
+    private readonly System.Windows.Forms.Timer _searchTimer;
 
     public StudentsView(IStudentService studentService)
     {
@@ -32,6 +33,14 @@ public class StudentsView : UserControl, IThemable
         Dock = DockStyle.Fill;
         DoubleBuffered = true;
         Padding = new Padding(0);
+
+        _searchTimer = new System.Windows.Forms.Timer { Interval = 250 };
+        _searchTimer.Tick += async (s, e) =>
+        {
+            _searchTimer.Stop();
+            _currentPage = 1;
+            await LoadStudentsAsync();
+        };
 
         // Header Action Bar
         var topBar = new Panel
@@ -47,10 +56,10 @@ public class StudentsView : UserControl, IThemable
             Location = new Point(0, 8),
             Size = new Size(340, 40)
         };
-        _txtSearch.InnerTextBox.TextChanged += async (s, e) =>
+        _txtSearch.InnerTextBox.TextChanged += (s, e) =>
         {
-            _currentPage = 1;
-            await LoadStudentsAsync();
+            _searchTimer.Stop();
+            _searchTimer.Start();
         };
 
         _btnExportExcel = new KButton
@@ -116,19 +125,21 @@ public class StudentsView : UserControl, IThemable
         _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Trạng thái", DataPropertyName = "TrangThaiLuuTru", FillWeight = 100 });
 
         // Bottom Pagination Bar
-        var bottomBar = new Panel
+        var bottomBar = new FlowLayoutPanel
         {
             Dock = DockStyle.Bottom,
             Height = 48,
-            Padding = new Padding(0, 10, 0, 0)
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false,
+            Padding = new Padding(0, 8, 0, 0)
         };
 
         _btnPrev = new KButton
         {
             Text = "Trang trước",
             Style = KButtonStyle.Secondary,
-            Size = new Size(100, 34),
-            Location = new Point(0, 8)
+            Size = new Size(105, 34),
+            Margin = new Padding(0, 0, 12, 0)
         };
         _btnPrev.Click += async (s, e) =>
         {
@@ -143,16 +154,16 @@ public class StudentsView : UserControl, IThemable
         {
             Text = "Trang 1 / 1 (Tổng 0 sinh viên)",
             Font = UIHelper.GetFont(9.5f, FontStyle.Regular),
-            Location = new Point(115, 14),
-            AutoSize = true
+            AutoSize = true,
+            Margin = new Padding(0, 8, 12, 0)
         };
 
         _btnNext = new KButton
         {
             Text = "Trang sau",
             Style = KButtonStyle.Secondary,
-            Size = new Size(100, 34),
-            Location = new Point(340, 8)
+            Size = new Size(105, 34),
+            Margin = new Padding(0)
         };
         _btnNext.Click += async (s, e) =>
         {

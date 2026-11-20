@@ -37,6 +37,8 @@ public class InvoicesView : UserControl, IThemable
     private List<InvoiceDto> _invoices = new();
     private List<RoomFeeDto> _roomFees = new();
     private SystemConfigDto _config = new();
+    private bool _isInitialized;
+    private readonly System.Windows.Forms.Timer _searchTimer;
 
     public InvoicesView(ITieredBillingService billingService, IConfigurationService configService)
     {
@@ -46,21 +48,33 @@ public class InvoicesView : UserControl, IThemable
         Dock = DockStyle.Fill;
         DoubleBuffered = true;
 
+        _searchTimer = new System.Windows.Forms.Timer { Interval = 250 };
+        _searchTimer.Tick += async (s, e) =>
+        {
+            _searchTimer.Stop();
+            await LoadDataAsync();
+        };
+
         // Top Bar
         var topBar = new Panel { Dock = DockStyle.Top, Height = 65, Padding = new Padding(0, 10, 0, 10) };
 
         _cboMonth = new ComboBox { Location = new Point(0, 14), Width = 70, DropDownStyle = ComboBoxStyle.DropDownList };
         for (int m = 1; m <= 12; m++) _cboMonth.Items.Add(m);
         _cboMonth.SelectedItem = DateTime.Now.Month;
-        _cboMonth.SelectedIndexChanged += async (s, e) => await LoadDataAsync();
+        _cboMonth.SelectedIndexChanged += async (s, e) => { if (_isInitialized) await LoadDataAsync(); };
 
         _cboYear = new ComboBox { Location = new Point(80, 14), Width = 85, DropDownStyle = ComboBoxStyle.DropDownList };
         for (int y = 2024; y <= 2028; y++) _cboYear.Items.Add(y);
         _cboYear.SelectedItem = DateTime.Now.Year;
-        _cboYear.SelectedIndexChanged += async (s, e) => await LoadDataAsync();
+        _cboYear.SelectedIndexChanged += async (s, e) => { if (_isInitialized) await LoadDataAsync(); };
 
         _txtSearch = new KTextBox { Placeholder = "Tìm mã KTXDN, KTXTP, MSSV, Phòng...", Location = new Point(175, 10), Width = 280 };
-        _txtSearch.InnerTextBox.TextChanged += async (s, e) => await LoadDataAsync();
+        _txtSearch.InnerTextBox.TextChanged += (s, e) =>
+        {
+            if (!_isInitialized) return;
+            _searchTimer.Stop();
+            _searchTimer.Start();
+        };
 
         _btnGenInvoices = new KButton
         {
@@ -155,16 +169,20 @@ public class InvoicesView : UserControl, IThemable
         Controls.Add(topBar);
 
         ApplyTheme(ThemeManager.Current);
-        Load += async (s, e) => await InitializeAsync();
+        Load += async (s, e) => await EnsureInitializedAsync();
     }
 
     protected override async void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
-        if (_invoices.Count == 0 && _roomFees.Count == 0)
-        {
-            await InitializeAsync();
-        }
+        await EnsureInitializedAsync();
+    }
+
+    private async Task EnsureInitializedAsync()
+    {
+        if (_isInitialized) return;
+        _isInitialized = true;
+        await InitializeAsync();
     }
 
     private void SetupUtilityColumns()
@@ -218,9 +236,19 @@ public class InvoicesView : UserControl, IThemable
             TongTienText = $"{i.TongTien:N0} đ",
             DaThuText = $"{i.DaThu:N0} đ",
             ConNoText = $"{i.ConNo:N0} đ",
-            TrangThaiText = i.TrangThai == TrangThaiHoaDon.DaThanhToan ? "🟢 Đã thanh toán" :
-                           i.TrangThai == TrangThaiHoaDon.ThanhToanMotPhan ? "🟠 Một phần" : "🔴 Chưa thanh toán"
+            TrangThaiText = i.TrangThai == TrangThaiHoaDon.DaThanhToan ? "● Đã thanh toán" :
+                           i.TrangThai == TrangThaiHoaDon.ThanhToanMotPhan ? "● Một phần" : "● Chưa thanh toán"
         }).ToList();
+
+        // Tự động hiển thị VietQR cho hóa đơn chưa thanh toán đầu tiên
+        var firstUnpaidIdx = _invoices.FindIndex(i => i.ConNo > 0);
+        if (firstUnpaidIdx >= 0 && firstUnpaidIdx < _gridUtility.Rows.Count)
+        {
+            _gridUtility.ClearSelection();
+            _gridUtility.Rows[firstUnpaidIdx].Selected = true;
+            _gridUtility.CurrentCell = _gridUtility.Rows[firstUnpaidIdx].Cells[0];
+            OnUtilityInvoiceSelected();
+        }
 
         _roomFees = await _billingService.GetRoomFeesAsync(search: search);
         _gridRoomFee.AutoGenerateColumns = false;
@@ -235,8 +263,8 @@ public class InvoicesView : UserControl, IThemable
             PhaiThuText = $"{f.PhaiThu:N0} đ",
             DaThuText = $"{f.DaThu:N0} đ",
             ConNoText = $"{f.ConNo:N0} đ",
-            TrangThaiText = f.TrangThai == TrangThaiHoaDon.DaThanhToan ? "🟢 Đã thanh toán" :
-                           f.TrangThai == TrangThaiHoaDon.ThanhToanMotPhan ? "🟠 Một phần" : "🔴 Chưa thanh toán"
+            TrangThaiText = f.TrangThai == TrangThaiHoaDon.DaThanhToan ? "● Đã thanh toán" :
+                           f.TrangThai == TrangThaiHoaDon.ThanhToanMotPhan ? "● Một phần" : "● Chưa thanh toán"
         }).ToList();
     }
 

@@ -112,9 +112,14 @@ public class KTextBox : UserControl, IThemable
     {
         var g = e.Graphics;
         g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
         var theme = ThemeManager.Current;
-        var bounds = new Rectangle(0, 0, Width - 1, Height - 1);
+        var parentBg = Parent?.BackColor ?? theme.Background;
+        if (parentBg == Color.Transparent) parentBg = theme.Background;
+        g.Clear(parentBg);
+
+        var bounds = new Rectangle(1, 1, Width - 3, Height - 3);
 
         using var path = UIHelper.CreateRoundedRectangle(bounds, _borderRadius);
 

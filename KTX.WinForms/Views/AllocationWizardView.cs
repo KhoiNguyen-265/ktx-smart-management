@@ -62,6 +62,8 @@ public class AllocationWizardView : UserControl, IThemable
     private DotDangKyDto? _selectedBatch;
     private SystemConfigDto _currentConfig = new();
     private AllocationResultDto? _allocationResult;
+    private bool _isInitialized;
+    private readonly Action _themeChangedHandler;
 
     public AllocationWizardView(
         IRegistrationService registrationService,
@@ -76,18 +78,24 @@ public class AllocationWizardView : UserControl, IThemable
 
         InitializeComponents();
         ApplyTheme(ThemeManager.Current);
-        ThemeManager.ThemeChanged += () => ApplyTheme(ThemeManager.Current);
+        _themeChangedHandler = () => ApplyTheme(ThemeManager.Current);
+        ThemeManager.ThemeChanged += _themeChangedHandler;
+        Disposed += (s, e) => ThemeManager.ThemeChanged -= _themeChangedHandler;
 
-        Load += async (s, e) => await InitializeDataAsync();
+        Load += async (s, e) => await EnsureInitializedAsync();
     }
 
     protected override async void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
-        if (_batches.Count == 0)
-        {
-            await InitializeDataAsync();
-        }
+        await EnsureInitializedAsync();
+    }
+
+    private async Task EnsureInitializedAsync()
+    {
+        if (_isInitialized) return;
+        _isInitialized = true;
+        await InitializeDataAsync();
     }
 
     private void InitializeComponents()
@@ -95,21 +103,31 @@ public class AllocationWizardView : UserControl, IThemable
         Dock = DockStyle.Fill;
         DoubleBuffered = true;
 
-        // Top Header
+        // Top Header (FlowLayoutPanel docked Right keeps Back/Next buttons always visible!)
         var topBar = new Panel
         {
             Dock = DockStyle.Top,
-            Height = 65,
-            Padding = new Padding(20, 12, 20, 10)
+            Height = 60,
+            Padding = new Padding(0, 8, 0, 8)
         };
 
         _lblStepIndicator = new Label
         {
             Text = "BƯỚC 1/4: CHỌN ĐỢT ĐĂNG KÝ VÀ KIỂM TRA ĐƠN",
-            Font = new Font("Segoe UI", 13F, FontStyle.Bold),
+            Font = new Font("Segoe UI", 12.5F, FontStyle.Bold),
             ForeColor = ThemeManager.Current.Primary,
-            Location = new Point(20, 15),
-            AutoSize = true
+            Dock = DockStyle.Left,
+            AutoSize = true,
+            TextAlign = ContentAlignment.MiddleLeft
+        };
+
+        var navPanel = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Right,
+            AutoSize = true,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false,
+            Padding = new Padding(0, 4, 0, 0)
         };
 
         _btnBack = new KButton
@@ -117,8 +135,7 @@ public class AllocationWizardView : UserControl, IThemable
             Text = "Quay lại",
             Style = KButtonStyle.Secondary,
             Size = new Size(110, 36),
-            Location = new Point(ClientSize.Width - 250, 12),
-            Anchor = AnchorStyles.Top | AnchorStyles.Right,
+            Margin = new Padding(0, 0, 10, 0),
             Enabled = false
         };
         _btnBack.Click += (s, e) => GoToStep(_currentStep - 1);
@@ -128,18 +145,20 @@ public class AllocationWizardView : UserControl, IThemable
             Text = "Tiếp theo",
             Style = KButtonStyle.Primary,
             Size = new Size(120, 36),
-            Location = new Point(ClientSize.Width - 130, 12),
-            Anchor = AnchorStyles.Top | AnchorStyles.Right
+            Margin = new Padding(0)
         };
         _btnNext.Click += (s, e) => GoToStep(_currentStep + 1);
 
-        topBar.Controls.AddRange(new Control[] { _lblStepIndicator, _btnBack, _btnNext });
+        navPanel.Controls.Add(_btnBack);
+        navPanel.Controls.Add(_btnNext);
+        topBar.Controls.Add(navPanel);
+        topBar.Controls.Add(_lblStepIndicator);
 
         // Content panel for steps
         var contentPanel = new Panel
         {
             Dock = DockStyle.Fill,
-            Padding = new Padding(20)
+            Padding = new Padding(0, 8, 0, 0)
         };
 
         BuildStep1();
@@ -166,13 +185,13 @@ public class AllocationWizardView : UserControl, IThemable
         {
             Title = "1. Chọn đợt xét tuyển KTX & Kiểm tra tính hợp lệ của đơn đăng ký",
             Dock = DockStyle.Fill,
-            Padding = new Padding(20)
+            Padding = new Padding(20, 56, 20, 20)
         };
 
-        var lblSelect = new Label { Text = "Đợt đăng ký:", Location = new Point(20, 45), AutoSize = true };
+        var lblSelect = new Label { Text = "Đợt đăng ký:", Location = new Point(20, 62), AutoSize = true };
         _cboBatches = new ComboBox
         {
-            Location = new Point(130, 42),
+            Location = new Point(130, 58),
             Width = 350,
             DropDownStyle = ComboBoxStyle.DropDownList,
             Font = new Font("Segoe UI", 10F)
@@ -183,8 +202,8 @@ public class AllocationWizardView : UserControl, IThemable
         {
             Text = "Nhập đơn từ Excel",
             Style = KButtonStyle.Secondary,
-            Location = new Point(500, 40),
-            Size = new Size(150, 34)
+            Location = new Point(500, 56),
+            Size = new Size(155, 34)
         };
         _btnImportApps.Click += async (s, e) => await ImportApplicationsAsync();
 
@@ -192,7 +211,7 @@ public class AllocationWizardView : UserControl, IThemable
         {
             Text = "Tải mẫu Excel",
             Style = KButtonStyle.Secondary,
-            Location = new Point(660, 40),
+            Location = new Point(665, 56),
             Size = new Size(130, 34)
         };
         _btnDownloadTemplate.Click += async (s, e) => await DownloadAppTemplateAsync();
@@ -200,8 +219,8 @@ public class AllocationWizardView : UserControl, IThemable
         _lblBatchStats = new Label
         {
             Text = "Đang tải thông tin đợt đăng ký...",
-            Location = new Point(20, 100),
-            Size = new Size(780, 200),
+            Location = new Point(20, 114),
+            Size = new Size(780, 220),
             Font = new Font("Segoe UI", 10.5F)
         };
 
@@ -217,7 +236,7 @@ public class AllocationWizardView : UserControl, IThemable
         {
             Title = "2. Thiết lập trọng số mục tiêu & Tùy chọn thuật toán Local Search",
             Dock = DockStyle.Fill,
-            Padding = new Padding(20)
+            Padding = new Padding(20, 56, 20, 20)
         };
 
         var panel = new TableLayoutPanel
@@ -248,20 +267,20 @@ public class AllocationWizardView : UserControl, IThemable
             Text = "Bật tối ưu cục bộ Local Search (2-Opt Swaps giữa các phòng)",
             Checked = true,
             Font = new Font("Segoe UI", 10F, FontStyle.Bold),
-            Location = new Point(20, 310),
+            Location = new Point(24, 355),
             AutoSize = true
         };
 
-        var lblSec = new Label { Text = "Thời gian tối đa Local Search:", Location = new Point(20, 350), AutoSize = true };
+        var lblSec = new Label { Text = "Thời gian tối đa Local Search:", Location = new Point(24, 395), AutoSize = true };
         _nudLocalSearchSeconds = new NumericUpDown
         {
             Minimum = 1,
             Maximum = 10,
             Value = 3,
-            Location = new Point(230, 348),
+            Location = new Point(236, 393),
             Width = 60
         };
-        var lblUnit = new Label { Text = "giây (đảm bảo phản hồi nhanh < 3s)", Location = new Point(300, 350), AutoSize = true };
+        var lblUnit = new Label { Text = "giây (đảm bảo phản hồi nhanh < 3s)", Location = new Point(306, 395), AutoSize = true };
 
         card.Controls.AddRange(new Control[] { panel, _chkLocalSearch, lblSec, _nudLocalSearchSeconds, lblUnit });
         _panelStep2.Controls.Add(card);
@@ -275,7 +294,7 @@ public class AllocationWizardView : UserControl, IThemable
         {
             Title = "3. Tiến trình Xếp phòng tự động & Mô phỏng lấp đầy thời gian thực",
             Dock = DockStyle.Fill,
-            Padding = new Padding(20)
+            Padding = new Padding(20, 56, 20, 20)
         };
 
         var topControlPanel = new Panel { Dock = DockStyle.Top, Height = 90 };
@@ -325,7 +344,7 @@ public class AllocationWizardView : UserControl, IThemable
         {
             Title = "4. Kết quả xếp phòng, Thống kê chất lượng & Điều chỉnh thủ công ΔS",
             Dock = DockStyle.Fill,
-            Padding = new Padding(16)
+            Padding = new Padding(16, 56, 16, 16)
         };
 
         _statCardsPanel = new FlowLayoutPanel
@@ -360,7 +379,7 @@ public class AllocationWizardView : UserControl, IThemable
         {
             Dock = DockStyle.Bottom,
             Height = 56,
-            Padding = new Padding(10)
+            Padding = new Padding(0, 10, 0, 4)
         };
 
         _btnManualAdjust = new KButton
@@ -368,7 +387,7 @@ public class AllocationWizardView : UserControl, IThemable
             Text = "Điều chỉnh phòng thủ công (Xem ΔS)",
             Style = KButtonStyle.Secondary,
             Size = new Size(270, 36),
-            Location = new Point(10, 10)
+            Dock = DockStyle.Left
         };
         _btnManualAdjust.Click += (s, e) => OpenManualAdjustDialog();
 
@@ -376,14 +395,13 @@ public class AllocationWizardView : UserControl, IThemable
         {
             Text = "Chốt kết quả & Tự động sinh hợp đồng",
             Style = KButtonStyle.Primary,
-            Size = new Size(290, 36),
-            Location = new Point(ClientSize.Width - 330, 10),
-            Anchor = AnchorStyles.Bottom | AnchorStyles.Right
+            Size = new Size(295, 36),
+            Dock = DockStyle.Right
         };
         _btnCommitContracts.Click += async (s, e) => await CommitContractsAsync();
 
-        bottomActionPanel.Controls.Add(_btnManualAdjust);
         bottomActionPanel.Controls.Add(_btnCommitContracts);
+        bottomActionPanel.Controls.Add(_btnManualAdjust);
 
         card.Controls.Add(_gridResults);
         card.Controls.Add(_statCardsPanel);
@@ -433,7 +451,7 @@ public class AllocationWizardView : UserControl, IThemable
                 $"THÔNG TIN ĐỢT ĐĂNG KÝ:\n" +
                 $"• Tên đợt: {batch.Ten}\n" +
                 $"• Thời gian: {batch.NgayMo:dd/MM/yyyy} – {batch.NgayDong:dd/MM/yyyy}\n" +
-                $"• Trạng thái: {(batch.DangMo ? "🟢 Đang mở nhận đơn" : "⚪ Đã kết thúc")}\n\n" +
+                $"• Trạng thái: {(batch.DangMo ? "● Đang mở nhận đơn" : "● Đã kết thúc")}\n\n" +
                 $"THỐNG KÊ DỮ LIỆU ĐẦU VÀO:\n" +
                 $"• Tổng số đơn đăng ký hợp lệ: {totalApps:N0} đơn\n" +
                 $"• Số đơn đăng ký theo nhóm bạn: {groupApps:N0} sinh viên\n" +

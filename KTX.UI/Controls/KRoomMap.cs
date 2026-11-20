@@ -23,8 +23,29 @@ public class KRoomMap : Control, IThemable
             _rooms = value ?? new();
             _hoveredIndex = -1;
             _selectedIndex = -1;
+            UpdateDynamicHeight();
             Invalidate();
         }
+    }
+
+    protected override void OnResize(EventArgs e)
+    {
+        base.OnResize(e);
+        UpdateDynamicHeight();
+    }
+
+    private void UpdateDynamicHeight()
+    {
+        if (Dock == DockStyle.Fill) return;
+        int cardWidth = 175;
+        int cardHeight = 110;
+        int gap = 16;
+        int padding = 16;
+        int effectiveW = Math.Max(cardWidth + padding * 2, Width);
+        int cardsPerRow = Math.Max(1, (effectiveW - padding * 2 + gap) / (cardWidth + gap));
+        int rows = _rooms.Count == 0 ? 1 : (int)Math.Ceiling(_rooms.Count / (double)cardsPerRow);
+        int neededHeight = padding * 2 + rows * (cardHeight + gap);
+        Height = Math.Max(320, neededHeight);
     }
 
     public RoomSummaryDto? SelectedRoom => (_selectedIndex >= 0 && _selectedIndex < _rooms.Count)

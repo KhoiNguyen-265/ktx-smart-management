@@ -112,18 +112,18 @@ public class CommandPaletteDialog : Form, IThemable
 
     private void InitializeCommands(List<CommandPaletteItem>? customItems)
     {
-        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "📊 Bảng Tổng quan / Dashboard", Subtitle = "Xem thống kê KPI, lấp đầy phòng, doanh thu", ActionKey = "Dashboard" });
-        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "🏢 Sơ đồ Tòa & Phòng", Subtitle = "Bản đồ phòng trực quan, trạng thái giường", ActionKey = "Rooms" });
-        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "👥 Quản lý Sinh viên", Subtitle = "Hồ sơ, nhập xuất Excel, quét QR CCCD", ActionKey = "Students" });
-        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "🧩 Xếp phòng AI", Subtitle = "Thuật toán Greedy + Local Search, tối ưu điểm", ActionKey = "Allocation" });
-        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "📄 Hợp đồng & Lưu trú", Subtitle = "Nhận/trả phòng, gia hạn, chuyển phòng, xuất hợp đồng PDF", ActionKey = "Contracts" });
-        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "⚡ Chỉ số Điện Nước", Subtitle = "Nhập chỉ số tháng, chế độ thay đồng hồ", ActionKey = "Meters" });
-        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "💳 Hóa đơn & VietQR", Subtitle = "Tính điện nước bậc thang, sinh mã VietQR chuyển khoản", ActionKey = "Invoices" });
-        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "🔄 Đối soát Sao kê", Subtitle = "Chống trùng 2 lớp, khớp sao kê ngân hàng tự động", ActionKey = "Reconcile" });
-        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "🛠️ Báo hỏng & Sự cố", Subtitle = "Quản lý yêu cầu sửa chữa, chi phí vật tư", ActionKey = "Maintenance" });
-        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "📈 Báo cáo Thống kê", Subtitle = "Xuất báo cáo lưu trú Excel, báo cáo tài chính PDF", ActionKey = "Reports" });
-        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "⚙️ Cài đặt Hệ thống", Subtitle = "Trọng số thuật toán, cấu hình ngân hàng VietQR", ActionKey = "Settings" });
-        _allItems.Add(new CommandPaletteItem { Category = "Hệ thống", Title = "🌓 Đổi giao diện Sáng / Tối", Subtitle = "Chuyển đổi tức thì giữa Light Mode và Dark Mode", ActionKey = "ToggleTheme" });
+        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "Bảng Tổng quan / Dashboard", Subtitle = "Xem thống kê KPI, lấp đầy phòng, doanh thu", ActionKey = "Dashboard" });
+        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "Sơ đồ Tòa & Phòng", Subtitle = "Bản đồ phòng trực quan, trạng thái giường", ActionKey = "Rooms" });
+        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "Quản lý Sinh viên", Subtitle = "Hồ sơ, nhập xuất Excel, quét QR CCCD", ActionKey = "Students" });
+        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "Xếp phòng tự động AI", Subtitle = "Thuật toán Greedy + Local Search, tối ưu điểm", ActionKey = "Allocation" });
+        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "Hợp đồng & Lưu trú", Subtitle = "Nhận/trả phòng, gia hạn, chuyển phòng, xuất hợp đồng PDF", ActionKey = "Contracts" });
+        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "Chỉ số Điện Nước", Subtitle = "Nhập chỉ số tháng, chế độ thay đồng hồ", ActionKey = "Meters" });
+        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "Hóa đơn & VietQR", Subtitle = "Tính điện nước bậc thang, sinh mã VietQR chuyển khoản", ActionKey = "Invoices" });
+        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "Đối soát Sao kê", Subtitle = "Chống trùng 2 lớp, khớp sao kê ngân hàng tự động", ActionKey = "Reconcile" });
+        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "Báo hỏng & Sự cố", Subtitle = "Quản lý yêu cầu sửa chữa, chi phí vật tư", ActionKey = "Maintenance" });
+        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "Báo cáo Thống kê", Subtitle = "Xuất báo cáo lưu trú Excel, báo cáo tài chính PDF", ActionKey = "Reports" });
+        _allItems.Add(new CommandPaletteItem { Category = "Chức năng", Title = "Cấu hình Hệ thống", Subtitle = "Trọng số thuật toán, cấu hình ngân hàng VietQR", ActionKey = "Settings" });
+        _allItems.Add(new CommandPaletteItem { Category = "Hệ thống", Title = "Đổi giao diện Sáng / Tối", Subtitle = "Chuyển đổi tức thì giữa Light Mode và Dark Mode", ActionKey = "ToggleTheme" });
 
         if (customItems != null && customItems.Count > 0)
         {

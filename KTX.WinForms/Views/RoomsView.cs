@@ -20,6 +20,7 @@ public class RoomsView : UserControl, IThemable
     private List<BuildingDto> _buildings = new();
     private int _selectedBuildingId = 1;
     private int _selectedFloor = 1;
+    private bool _isInitialized;
 
     public RoomsView(IRoomService roomService)
     {
@@ -98,55 +99,62 @@ public class RoomsView : UserControl, IThemable
             _panelFloors.Controls.Add(btnFloor);
         }
 
-        // Status Legend (Chú thích màu sắc)
-        var legendPanel = new Panel
+        // Status Legend (Chú thích màu sắc chuẩn màu trực quan)
+        var legendPanel = new FlowLayoutPanel
         {
             Dock = DockStyle.Top,
-            Height = 36
+            Height = 36,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false,
+            Padding = new Padding(0, 6, 0, 0)
         };
 
-        var lblLegend = new Label
-        {
-            Text = "Chú thích màu sắc:   ● Trống hoàn toàn (Xanh)     ● Còn chỗ trống (Cam)     ● Đã đầy (Đỏ)     ● Đang bảo trì (Xám)",
-            Font = UIHelper.GetFont(9f, FontStyle.Regular),
-            Location = new Point(0, 8),
-            AutoSize = true
-        };
-        legendPanel.Controls.Add(lblLegend);
+        legendPanel.Controls.Add(new Label { Text = "Chú thích:", Font = UIHelper.GetFont(9f, FontStyle.Bold), AutoSize = true, Margin = new Padding(0, 2, 12, 0) });
+        legendPanel.Controls.Add(CreateLegendChip("● Trống hoàn toàn", ThemeManager.Current.Success));
+        legendPanel.Controls.Add(CreateLegendChip("● Còn chỗ trống", ThemeManager.Current.Warning));
+        legendPanel.Controls.Add(CreateLegendChip("● Đã đầy", ThemeManager.Current.Danger));
+        legendPanel.Controls.Add(CreateLegendChip("● Đang bảo trì", ThemeManager.Current.TextMuted));
 
         topBar.Controls.AddRange(new Control[] { lblBuilding, _cboBuilding, lblFloor, _panelFloors });
 
-        // Center: Room Map & Right Detail Card
+        // Center: Room Map (inside AutoScroll container) & Right Detail Card
         var mainContainer = new SplitContainer
         {
             Dock = DockStyle.Fill,
             FixedPanel = FixedPanel.Panel2,
-            SplitterDistance = 800,
-            SplitterWidth = 16,
+            SplitterDistance = 760,
+            SplitterWidth = 14,
             BorderStyle = BorderStyle.None
+        };
+
+        var mapScrollPanel = new Panel
+        {
+            Dock = DockStyle.Fill,
+            AutoScroll = true
         };
 
         _roomMap = new KRoomMap
         {
-            Dock = DockStyle.Fill
+            Dock = DockStyle.Top
         };
         _roomMap.RoomClicked += async (room) => await LoadRoomDetailAsync(room.Id);
-
-        mainContainer.Panel1.Controls.Add(_roomMap);
+        mapScrollPanel.Controls.Add(_roomMap);
+        mainContainer.Panel1.Controls.Add(mapScrollPanel);
 
         // Detail Card on Right
         _detailCard = new KCard
         {
             Dock = DockStyle.Fill,
             Title = "Chi tiết phòng KTX",
-            Subtitle = "Click vào một ô phòng để xem danh sách sinh viên"
+            Subtitle = "Click vào một ô phòng để xem sinh viên & thiết bị",
+            Padding = new Padding(14, 66, 14, 14)
         };
 
         _detailPanel = new Panel
         {
             Dock = DockStyle.Fill,
             AutoScroll = true,
-            Padding = new Padding(0, 60, 0, 0)
+            Padding = new Padding(0)
         };
         _detailCard.Controls.Add(_detailPanel);
 
@@ -158,16 +166,29 @@ public class RoomsView : UserControl, IThemable
 
         ApplyTheme(ThemeManager.Current);
 
-        Load += async (s, e) => await InitializeDataAsync();
+        Load += async (s, e) => await EnsureInitializedAsync();
     }
+
+    private static Label CreateLegendChip(string text, Color color) => new()
+    {
+        Text = text,
+        ForeColor = color,
+        Font = UIHelper.GetFont(9f, FontStyle.Bold),
+        AutoSize = true,
+        Margin = new Padding(0, 2, 18, 0)
+    };
 
     protected override async void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
-        if (_buildings.Count == 0)
-        {
-            await InitializeDataAsync();
-        }
+        await EnsureInitializedAsync();
+    }
+
+    private async Task EnsureInitializedAsync()
+    {
+        if (_isInitialized) return;
+        _isInitialized = true;
+        await InitializeDataAsync();
     }
 
     private async Task InitializeDataAsync()
@@ -257,7 +278,7 @@ public class RoomsView : UserControl, IThemable
 
                 var lblName = new Label
                 {
-                    Text = $"👤 {r.HoTen} ({r.MSSV})",
+                    Text = $"● {r.HoTen} ({r.MSSV})",
                     Font = UIHelper.GetFont(8.5f, FontStyle.Bold),
                     Dock = DockStyle.Top,
                     Height = 18

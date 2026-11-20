@@ -10,6 +10,7 @@ public static class KDataGridHelper
     {
         var theme = ThemeManager.Current;
 
+        grid.AutoGenerateColumns = false;
         grid.BorderStyle = BorderStyle.None;
         grid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
         grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
@@ -30,21 +31,32 @@ public static class KDataGridHelper
         {
             BackColor = theme.SurfaceHover,
             ForeColor = theme.TextSecondary,
-            Font = UIHelper.GetFont(9.5f, FontStyle.Bold),
+            SelectionBackColor = theme.SurfaceHover,
+            SelectionForeColor = theme.TextSecondary,
+            Font = UIHelper.GetFont(9.2f, FontStyle.Bold),
             Alignment = DataGridViewContentAlignment.MiddleLeft,
-            Padding = new Padding(12, 0, 0, 0)
+            Padding = new Padding(10, 0, 6, 0)
         };
 
         // Rows style
-        grid.RowTemplate.Height = 42;
+        grid.RowTemplate.Height = 40;
         grid.DefaultCellStyle = new DataGridViewCellStyle
         {
             BackColor = theme.Surface,
             ForeColor = theme.TextPrimary,
             SelectionBackColor = theme.PrimaryLight,
             SelectionForeColor = theme.Primary,
-            Font = UIHelper.GetFont(9.5f, FontStyle.Regular),
-            Padding = new Padding(12, 0, 0, 0)
+            Font = UIHelper.GetFont(9.2f, FontStyle.Regular),
+            Padding = new Padding(10, 0, 6, 0)
+        };
+        grid.AlternatingRowsDefaultCellStyle = new DataGridViewCellStyle
+        {
+            BackColor = theme.Mode == ThemeMode.Dark ? Color.FromArgb(28, 32, 40) : Color.FromArgb(249, 250, 252),
+            ForeColor = theme.TextPrimary,
+            SelectionBackColor = theme.PrimaryLight,
+            SelectionForeColor = theme.Primary,
+            Font = UIHelper.GetFont(9.2f, FontStyle.Regular),
+            Padding = new Padding(10, 0, 6, 0)
         };
     }
 }

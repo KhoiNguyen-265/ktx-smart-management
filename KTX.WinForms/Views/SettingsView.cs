@@ -7,9 +7,10 @@ using KTX.UI.Themes;
 
 namespace KTX.WinForms.Views;
 
-public class SettingsView : UserControl
+public class SettingsView : UserControl, IThemable
 {
     private readonly IConfigurationService _configService;
+    private bool _isLoaded;
 
     private TabControl _tabMain = null!;
     private TabPage _tabWeights = null!;
@@ -45,6 +46,7 @@ public class SettingsView : UserControl
         _configService = configService;
         InitializeComponents();
         ThemeManager.ThemeChanged += OnThemeChanged;
+        Disposed += (s, e) => ThemeManager.ThemeChanged -= OnThemeChanged;
     }
 
     private void InitializeComponents()
@@ -93,12 +95,19 @@ public class SettingsView : UserControl
         this.Controls.Add(_tabMain);
         this.Controls.Add(headerPanel);
 
-        this.Load += async (s, e) => await LoadDataAsync();
+        this.Load += async (s, e) => await EnsureLoadedAsync();
     }
 
     protected override async void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
+        await EnsureLoadedAsync();
+    }
+
+    private async Task EnsureLoadedAsync()
+    {
+        if (_isLoaded) return;
+        _isLoaded = true;
         await LoadDataAsync();
     }
 
@@ -108,7 +117,7 @@ public class SettingsView : UserControl
         {
             Title = "Thiết lập trọng số cho hàm mục tiêu tối ưu (Objective Function)",
             Dock = DockStyle.Fill,
-            Padding = new Padding(24)
+            Padding = new Padding(24, 56, 24, 20)
         };
 
         var panel = new TableLayoutPanel
@@ -160,7 +169,7 @@ public class SettingsView : UserControl
         btnSaveWeights.Click += async (s, e) => await SaveWeightsAsync();
 
         card.Controls.Add(btnSaveWeights);
-        btnSaveWeights.Location = new Point(20, 360);
+        btnSaveWeights.Location = new Point(24, 392);
         card.Controls.Add(panel);
         _tabWeights.Controls.Add(card);
     }
@@ -213,7 +222,7 @@ public class SettingsView : UserControl
         {
             Title = "Cấu hình Ngân hàng thụ hưởng & Sinh mã VietQR tĩnh/động",
             Dock = DockStyle.Fill,
-            Padding = new Padding(24)
+            Padding = new Padding(24, 56, 24, 20)
         };
 
         var panel = new TableLayoutPanel
@@ -257,7 +266,7 @@ public class SettingsView : UserControl
         btnSaveBank.Click += async (s, e) => await SaveBankAsync();
 
         card.Controls.Add(btnSaveBank);
-        btnSaveBank.Location = new Point(20, 360);
+        btnSaveBank.Location = new Point(24, 392);
         card.Controls.Add(panel);
         _tabBank.Controls.Add(card);
     }
@@ -281,15 +290,15 @@ public class SettingsView : UserControl
         {
             Title = "Danh mục Diện chính sách & Điểm cộng xét duyệt",
             Dock = DockStyle.Fill,
-            Padding = new Padding(16)
+            Padding = new Padding(16, 56, 16, 16)
         };
 
-        var topPanel = new Panel { Dock = DockStyle.Top, Height = 45 };
-        var lblNew = new Label { Text = "Thêm diện mới:", AutoSize = true, Location = new Point(5, 12) };
-        _txtNewPrioName = new KTextBox { Placeholder = "Tên diện ưu tiên...", Location = new Point(120, 5), Width = 250 };
-        var lblPts = new Label { Text = "Điểm cộng:", AutoSize = true, Location = new Point(390, 12) };
-        _nudNewPrioPoints = new NumericUpDown { Minimum = 1, Maximum = 100, Value = 10, Location = new Point(475, 8), Width = 70 };
-        var btnAddPrio = new KButton { Text = "+ Thêm mới", Style = KButtonStyle.Primary, Location = new Point(560, 5), Size = new Size(110, 32) };
+        var topPanel = new Panel { Dock = DockStyle.Top, Height = 52 };
+        var lblNew = new Label { Text = "Thêm diện mới:", AutoSize = true, Location = new Point(5, 14) };
+        _txtNewPrioName = new KTextBox { Placeholder = "Tên diện ưu tiên...", Location = new Point(120, 6), Size = new Size(250, 38) };
+        var lblPts = new Label { Text = "Điểm cộng:", AutoSize = true, Location = new Point(390, 14) };
+        _nudNewPrioPoints = new NumericUpDown { Minimum = 1, Maximum = 100, Value = 10, Location = new Point(475, 10), Width = 70 };
+        var btnAddPrio = new KButton { Text = "+ Thêm mới", Style = KButtonStyle.Primary, Location = new Point(560, 7), Size = new Size(115, 36) };
         btnAddPrio.Click += async (s, e) => await AddPriorityAsync();
 
         topPanel.Controls.AddRange(new Control[] { lblNew, _txtNewPrioName, lblPts, _nudNewPrioPoints, btnAddPrio });
@@ -303,6 +312,9 @@ public class SettingsView : UserControl
             AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
         };
         KDataGridHelper.ApplyModernStyle(_gridPriorities);
+        _gridPriorities.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "ID", DataPropertyName = "Id", FillWeight = 15 });
+        _gridPriorities.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Tên diện ưu tiên", DataPropertyName = "Ten", FillWeight = 65 });
+        _gridPriorities.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Điểm cộng", DataPropertyName = "DiemCong", FillWeight = 20 });
 
         card.Controls.Add(_gridPriorities);
         card.Controls.Add(topPanel);
@@ -315,17 +327,23 @@ public class SettingsView : UserControl
         {
             Title = "Danh mục 34 Tỉnh / Thành phố trực thuộc Trung ương (Từ 01/07/2025)",
             Dock = DockStyle.Fill,
-            Padding = new Padding(16)
+            Padding = new Padding(16, 56, 16, 16)
         };
 
         _gridProvinces = new DataGridView
         {
             Dock = DockStyle.Fill,
+            ReadOnly = true,
             AllowUserToAddRows = false,
             SelectionMode = DataGridViewSelectionMode.FullRowSelect,
             AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
         };
         KDataGridHelper.ApplyModernStyle(_gridProvinces);
+        _gridProvinces.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "ID", DataPropertyName = "Id", FillWeight = 10 });
+        _gridProvinces.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Tỉnh / Thành phố", DataPropertyName = "TenTinh", FillWeight = 25 });
+        _gridProvinces.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Khoảng cách", DataPropertyName = "KhoangCachKm", FillWeight = 15 });
+        _gridProvinces.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Nhóm khoảng cách", DataPropertyName = "Nhom", FillWeight = 18 });
+        _gridProvinces.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Tên cũ trước sáp nhập", DataPropertyName = "CacTenCuAnhXa", FillWeight = 32 });
 
         var bottomPanel = new Panel { Dock = DockStyle.Bottom, Height = 50, Padding = new Padding(5) };
         var lblNote = new Label
@@ -463,13 +481,16 @@ public class SettingsView : UserControl
         }
     }
 
-    private void OnThemeChanged()
+    public void ApplyTheme(Theme theme)
     {
-        var theme = ThemeManager.Current;
         this.BackColor = theme.Background;
         _tabWeights.BackColor = theme.Background;
         _tabBank.BackColor = theme.Background;
         _tabPriorities.BackColor = theme.Background;
         _tabProvinces.BackColor = theme.Background;
+        KDataGridHelper.ApplyModernStyle(_gridPriorities);
+        KDataGridHelper.ApplyModernStyle(_gridProvinces);
     }
+
+    private void OnThemeChanged() => ApplyTheme(ThemeManager.Current);
 }

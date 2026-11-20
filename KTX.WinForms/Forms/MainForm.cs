@@ -19,14 +19,18 @@ public class MainForm : Form, IThemable
     private readonly KButton _btnCommandPalette;
     private readonly KButton _btnThemeToggle;
 
+    private readonly FlowLayoutPanel _topbarRightPanel;
+    private readonly Action _themeChangedHandler;
+
     public MainForm(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
 
         Text = "KTX Smart Management - Hệ thống Quản lý Ký túc xá Thông minh";
-        ClientSize = new Size(1280, 760);
-        MinimumSize = new Size(1100, 680);
+        ClientSize = new Size(1340, 780);
+        MinimumSize = new Size(1120, 680);
         StartPosition = FormStartPosition.CenterScreen;
+        DoubleBuffered = true;
 
         // 1. Sidebar
         _sidebar = new KSidebar();
@@ -37,34 +41,47 @@ public class MainForm : Form, IThemable
         {
             Dock = DockStyle.Top,
             Height = 64,
-            Padding = new Padding(24, 12, 24, 12)
+            Padding = new Padding(20, 0, 20, 0)
+        };
+        _topbar.Paint += (s, e) =>
+        {
+            using var pen = new Pen(ThemeManager.Current.Border, 1f);
+            e.Graphics.DrawLine(pen, 0, _topbar.Height - 1, _topbar.Width, _topbar.Height - 1);
         };
 
         _lblBreadcrumb = new Label
         {
-            Text = "Tổng quan / Dashboard",
+            Text = "Trang chủ / Tổng quan",
             Font = UIHelper.GetFont(12f, FontStyle.Bold),
-            Location = new Point(24, 20),
-            AutoSize = true
+            Dock = DockStyle.Left,
+            AutoSize = true,
+            TextAlign = ContentAlignment.MiddleLeft
+        };
+
+        _topbarRightPanel = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Right,
+            AutoSize = true,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false,
+            Padding = new Padding(0, 14, 0, 0)
         };
 
         _btnCommandPalette = new KButton
         {
             Text = "Tìm nhanh [Ctrl+K]",
             Style = KButtonStyle.Secondary,
-            Size = new Size(160, 34),
-            Location = new Point(ClientSize.Width - 620, 15),
-            Anchor = AnchorStyles.Top | AnchorStyles.Right
+            Size = new Size(155, 36),
+            Margin = new Padding(0, 0, 10, 0)
         };
         _btnCommandPalette.Click += (s, e) => ShowCommandPalette();
 
         _btnThemeToggle = new KButton
         {
-            Text = "Đổi giao diện",
+            Text = "Chế độ Tối",
             Style = KButtonStyle.Secondary,
-            Size = new Size(125, 34),
-            Location = new Point(ClientSize.Width - 445, 15),
-            Anchor = AnchorStyles.Top | AnchorStyles.Right
+            Size = new Size(115, 36),
+            Margin = new Padding(0, 0, 14, 0)
         };
         _btnThemeToggle.Click += (s, e) =>
         {
@@ -76,22 +93,23 @@ public class MainForm : Form, IThemable
         {
             Text = "Đang tải...",
             Font = UIHelper.GetFont(9.5f, FontStyle.Bold),
-            Location = new Point(ClientSize.Width - 300, 22),
-            Size = new Size(270, 24),
-            TextAlign = ContentAlignment.MiddleRight,
-            Anchor = AnchorStyles.Top | AnchorStyles.Right
+            AutoSize = true,
+            Padding = new Padding(4, 8, 4, 0),
+            TextAlign = ContentAlignment.MiddleRight
         };
 
+        _topbarRightPanel.Controls.Add(_btnCommandPalette);
+        _topbarRightPanel.Controls.Add(_btnThemeToggle);
+        _topbarRightPanel.Controls.Add(_lblUser);
+
+        _topbar.Controls.Add(_topbarRightPanel);
         _topbar.Controls.Add(_lblBreadcrumb);
-        _topbar.Controls.Add(_btnCommandPalette);
-        _topbar.Controls.Add(_btnThemeToggle);
-        _topbar.Controls.Add(_lblUser);
 
         // 3. Content Panel
         _contentPanel = new Panel
         {
             Dock = DockStyle.Fill,
-            Padding = new Padding(24),
+            Padding = new Padding(20),
             AutoScroll = true
         };
 
@@ -100,7 +118,9 @@ public class MainForm : Form, IThemable
         Controls.Add(_sidebar);
 
         ApplyTheme(ThemeManager.Current);
-        ThemeManager.ThemeChanged += () => ApplyTheme(ThemeManager.Current);
+        _themeChangedHandler = () => ApplyTheme(ThemeManager.Current);
+        ThemeManager.ThemeChanged += _themeChangedHandler;
+        FormClosed += (s, e) => ThemeManager.ThemeChanged -= _themeChangedHandler;
     }
 
     public void InitializeSession(UserSession session)
@@ -117,7 +137,11 @@ public class MainForm : Form, IThemable
 
     public void NavigateTo(string key)
     {
-        _contentPanel.Controls.Clear();
+        foreach (Control old in _contentPanel.Controls.Cast<Control>().ToList())
+        {
+            _contentPanel.Controls.Remove(old);
+            old.Dispose();
+        }
         _sidebar.SelectedKey = key;
 
         string pageTitle = key switch
@@ -298,9 +322,12 @@ public class MainForm : Form, IThemable
     {
         BackColor = theme.Background;
         _topbar.BackColor = theme.Surface;
+        _topbarRightPanel.BackColor = theme.Surface;
         _contentPanel.BackColor = theme.Background;
         _lblBreadcrumb.ForeColor = theme.TextPrimary;
         _lblUser.ForeColor = theme.TextPrimary;
+        _btnThemeToggle.Text = theme.Mode == ThemeMode.Dark ? "Chế độ Sáng" : "Chế độ Tối";
+        _topbar.Invalidate();
     }
 
     private void ApplyThemeRecursively(Control root)

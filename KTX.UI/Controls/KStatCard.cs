@@ -63,9 +63,14 @@ public class KStatCard : Control, IThemable
     {
         var g = e.Graphics;
         g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
         var theme = ThemeManager.Current;
-        var bounds = new Rectangle(0, 0, Width - 1, Height - 1);
+        var parentBg = Parent?.BackColor ?? theme.Background;
+        if (parentBg == Color.Transparent) parentBg = theme.Background;
+        g.Clear(parentBg);
+
+        var bounds = new Rectangle(1, 1, Width - 3, Height - 3);
 
         using var path = UIHelper.CreateRoundedRectangle(bounds, _borderRadius);
 
@@ -75,29 +80,39 @@ public class KStatCard : Control, IThemable
             g.FillPath(bgBrush, path);
         }
 
+        // Draw subtle left accent stripe
+        var accentColor = _isPositiveTrend ? theme.Primary : theme.Danger;
+        using (var accentBrush = new SolidBrush(accentColor))
+        {
+            g.FillRectangle(accentBrush, bounds.X + 1, bounds.Y + 14, 4, bounds.Height - 28);
+        }
+
         // Draw border
         using (var borderPen = new Pen(theme.Border, 1f))
         {
             g.DrawPath(borderPen, path);
         }
 
+        int textX = 18;
+        int textW = Math.Max(10, Width - 30);
+
         // Draw Title
-        using var titleFont = UIHelper.GetFont(9.5f, FontStyle.Regular);
-        using var titleBrush = new SolidBrush(theme.TextSecondary);
-        g.DrawString(_title, titleFont, titleBrush, 16, 14);
+        using var titleFont = UIHelper.GetFont(9.2f, FontStyle.Regular);
+        TextRenderer.DrawText(g, _title, titleFont, new Rectangle(textX, 12, textW, 20), theme.TextSecondary,
+            TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
 
         // Draw Big Value
-        using var valueFont = UIHelper.GetFont(18f, FontStyle.Bold);
-        using var valueBrush = new SolidBrush(theme.TextPrimary);
-        g.DrawString(_value, valueFont, valueBrush, 16, 34);
+        using var valueFont = UIHelper.GetFont(17f, FontStyle.Bold);
+        TextRenderer.DrawText(g, _value, valueFont, new Rectangle(textX, 34, textW, 34), theme.TextPrimary,
+            TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
 
         // Draw Trend / Subtitle
         if (!string.IsNullOrEmpty(_trendText))
         {
-            using var trendFont = UIHelper.GetFont(8.5f, FontStyle.Bold);
+            using var trendFont = UIHelper.GetFont(8.3f, FontStyle.Bold);
             var trendColor = _isPositiveTrend ? theme.Success : theme.Danger;
-            using var trendBrush = new SolidBrush(trendColor);
-            g.DrawString(_trendText, trendFont, trendBrush, 16, 70);
+            TextRenderer.DrawText(g, _trendText, trendFont, new Rectangle(textX, 72, textW, 20), trendColor,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
         }
     }
 }

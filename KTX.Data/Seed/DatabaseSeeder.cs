@@ -357,63 +357,104 @@ public static class DatabaseSeeder
 
             db.DonDangKys.AddRange(applications);
             await db.SaveChangesAsync();
+        }
 
-            // 9. Seed 3 tháng chỉ số điện nước mẫu (Tháng 8, 9, 10)
-            var activeRooms = await db.Phongs.Where(p => p.TrangThai == TrangThaiPhong.HoatDong).Take(30).ToListAsync();
-            foreach (var r in activeRooms)
+        var curMonthDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+
+        // 9. Seed chỉ số điện nước cho 3 tháng gần nhất (toàn bộ phòng hoạt động, tự động bù tháng mới)
+        {
+            var activeRooms = await db.Phongs
+                .Include(p => p.LoaiPhong)
+                .Where(p => p.TrangThai == TrangThaiPhong.HoatDong)
+                .OrderBy(p => p.Id)
+                .ToListAsync();
+
+            var meterMonths = new[]
             {
-                // Tháng 8
-                db.ChiSoDienNuocs.Add(new ChiSoDienNuoc
-                {
-                    PhongId = r.Id,
-                    Thang = 8,
-                    Nam = 2026,
-                    DienCu = 100,
-                    DienMoi = 280,
-                    SanLuongDien = 180,
-                    NuocCu = 50,
-                    NuocMoi = 68,
-                    SanLuongNuoc = 18
-                });
+                curMonthDate.AddMonths(-2),
+                curMonthDate.AddMonths(-1),
+                curMonthDate
+            };
 
-                // Tháng 9 (Phòng A101 và C101 có thay đồng hồ để demo tính năng đặc biệt)
-                bool isReplaced = (r.MaPhong == "A101" || r.MaPhong == "C101");
-                db.ChiSoDienNuocs.Add(new ChiSoDienNuoc
-                {
-                    PhongId = r.Id,
-                    Thang = 9,
-                    Nam = 2026,
-                    DienCu = 280,
-                    DienMoi = isReplaced ? 25 : 470,
-                    CoThayDongHoDien = isReplaced,
-                    DienChotDongHoCu = isReplaced ? 300 : null,
-                    DienDauDongHoMoi = isReplaced ? 0 : null,
-                    SanLuongDien = isReplaced ? ((300 - 280) + (25 - 0)) : (470 - 280),
-                    NuocCu = 68,
-                    NuocMoi = 85,
-                    SanLuongNuoc = 17,
-                    GhiChu = isReplaced ? "Đồng hồ điện cũ chập cháy, thay mới ngày 15/09" : null
-                });
+            var abnormalRoomCodes = new HashSet<string> { "A102", "A203", "B104", "C103", "C202", "D105" };
+            var replacedRoomCodes = new HashSet<string> { "A101", "B201", "C101" };
 
-                // Tháng 10
-                decimal prevElectric = isReplaced ? 25 : 470;
-                db.ChiSoDienNuocs.Add(new ChiSoDienNuoc
+            for (int mi = 0; mi < meterMonths.Length; mi++)
+            {
+                int m = meterMonths[mi].Month;
+                int y = meterMonths[mi].Year;
+
+                if (await db.ChiSoDienNuocs.AnyAsync(c => c.Thang == m && c.Nam == y))
+                    continue;
+
+                var prevDt = meterMonths[mi].AddMonths(-1);
+                var prevMap = await db.ChiSoDienNuocs.AsNoTracking()
+                    .Where(c => c.Thang == prevDt.Month && c.Nam == prevDt.Year)
+                    .ToDictionaryAsync(c => c.PhongId);
+
+                var batchReadings = new List<ChiSoDienNuoc>();
+                foreach (var r in activeRooms)
                 {
-                    PhongId = r.Id,
-                    Thang = 10,
-                    Nam = 2026,
-                    DienCu = prevElectric,
-                    DienMoi = prevElectric + 195,
-                    SanLuongDien = 195,
-                    NuocCu = 85,
-                    NuocMoi = 104,
-                    SanLuongNuoc = 19
-                });
+                    int cap = r.LoaiPhong?.SucChua ?? 6;
+                    decimal baseElec = cap == 4 ? 145m : (cap == 6 ? 195m : 245m);
+                    decimal deltaElec = baseElec + ((r.Id * 13 + m * 17) % 45);
+                    decimal deltaWater = (cap * 2.6m) + ((r.Id * 3 + m) % 6);
+
+                    decimal prevE = prevMap.TryGetValue(r.Id, out var pr) ? pr.DienMoi : (120m + (r.Id % 50) * 10m);
+                    decimal prevW = prevMap.TryGetValue(r.Id, out var prw) ? prw.NuocMoi : (40m + (r.Id % 30) * 3m);
+
+                    // Tháng giữa: mô phỏng thay đồng hồ điện cho 3 phòng mẫu
+                    bool isReplaced = (mi == 1 && replacedRoomCodes.Contains(r.MaPhong));
+                    // Tháng hiện tại: mô phỏng tiêu thụ điện đột biến (>1.7x trung bình) cho 6 phòng để kích hoạt cảnh báo
+                    bool isSpike = (mi == 2 && abnormalRoomCodes.Contains(r.MaPhong));
+                    if (isSpike) deltaElec = Math.Round(deltaElec * 1.85m, 0);
+
+                    if (isReplaced)
+                    {
+                        decimal chotCu = prevE + 85m;
+                        decimal moiAfter = 95m;
+                        batchReadings.Add(new ChiSoDienNuoc
+                        {
+                            PhongId = r.Id,
+                            Thang = m,
+                            Nam = y,
+                            DienCu = prevE,
+                            DienMoi = moiAfter,
+                            CoThayDongHoDien = true,
+                            DienChotDongHoCu = chotCu,
+                            DienDauDongHoMoi = 0,
+                            SanLuongDien = (chotCu - prevE) + moiAfter,
+                            NuocCu = prevW,
+                            NuocMoi = prevW + deltaWater,
+                            SanLuongNuoc = deltaWater,
+                            GhiChu = $"Thay công tơ điện tử mới ngày 15/{m:D2}/{y}"
+                        });
+                    }
+                    else
+                    {
+                        batchReadings.Add(new ChiSoDienNuoc
+                        {
+                            PhongId = r.Id,
+                            Thang = m,
+                            Nam = y,
+                            DienCu = prevE,
+                            DienMoi = prevE + deltaElec,
+                            SanLuongDien = deltaElec,
+                            NuocCu = prevW,
+                            NuocMoi = prevW + deltaWater,
+                            SanLuongNuoc = deltaWater,
+                            GhiChu = isSpike ? "Kiểm tra điều hòa/thiết bị tiêu thụ cao bất thường" : null
+                        });
+                    }
+                }
+
+                db.ChiSoDienNuocs.AddRange(batchReadings);
+                await db.SaveChangesAsync();
             }
-            await db.SaveChangesAsync();
         }
 
         // 10. Seed Hợp đồng thực tế cho sinh viên đang lưu trú (~480 sinh viên / 720 chỗ = ~67% lấp đầy)
+        //     Đa dạng trạng thái phòng: Đầy 100% (Đỏ), Còn chỗ (Cam), Trống 100% (Xanh) + Lịch sử đã trả phòng
         if (!await db.HopDongs.AnyAsync())
         {
             var allStudents = await db.SinhViens.ToListAsync();
@@ -431,29 +472,39 @@ public static class DatabaseSeeder
 
             var contractList = new List<HopDong>();
             var allocatedMssvs = new HashSet<string>();
+            var startDate = curMonthDate.AddMonths(-2);
+            var normalEndDate = curMonthDate.AddMonths(8).AddDays(-1);
 
             int maleIdx = 0;
-            // Xếp sinh viên Nam vào Tòa A và Tòa B (lấp đầy ~65-70%)
-            foreach (var r in maleRooms)
+            for (int idx = 0; idx < maleRooms.Count; idx++)
             {
-                int bedsToFill = (int)Math.Round(r.LoaiPhong.SucChua * 0.68);
-                for (int b = 0; b < bedsToFill && maleIdx < maleStudents.Count - 80; b++)
+                var r = maleRooms[idx];
+                // Tạo bức tranh đa dạng trên mỗi tầng: 2 phòng đầy 100%, 3 phòng còn chỗ, 1 phòng trống 100%
+                int mod = idx % 6;
+                int bedsToFill = mod switch
+                {
+                    0 or 1 => r.LoaiPhong.SucChua, // Đầy 100% (Đỏ)
+                    5 => 0,                         // Trống 100% (Xanh)
+                    _ => Math.Max(1, (int)Math.Round(r.LoaiPhong.SucChua * 0.65)) // Còn chỗ (Cam)
+                };
+
+                for (int b = 0; b < bedsToFill && maleIdx < maleStudents.Count - 55; b++)
                 {
                     var sv = maleStudents[maleIdx++];
                     allocatedMssvs.Add(sv.MSSV);
 
                     // 14 hợp đồng sắp hết hạn trong 30 ngày tới để kích hoạt cảnh báo Dashboard
                     bool expiringSoon = contractList.Count < 14;
-                    var endDate = expiringSoon ? DateTime.Today.AddDays(7 + (contractList.Count % 18)) : new DateTime(2027, 6, 30);
+                    var endDate = expiringSoon ? DateTime.Today.AddDays(5 + (contractList.Count % 20)) : normalEndDate;
 
                     contractList.Add(new HopDong
                     {
                         MSSV = sv.MSSV,
                         PhongId = r.Id,
-                        NgayBatDau = new DateTime(2026, 9, 1),
+                        NgayBatDau = startDate,
                         NgayKetThuc = endDate,
                         GiaThang = r.LoaiPhong.GiaThang,
-                        MienGiamPhanTram = (sv.DienUuTienId != null && sv.DienUuTienId > 1) ? 15 : 0,
+                        MienGiamPhanTram = (sv.DienUuTienId != null && sv.DienUuTienId > 1 && sv.DienUuTienId < 5) ? 15 : 0,
                         TienCoc = r.LoaiPhong.GiaThang,
                         TrangThai = TrangThaiHopDong.HieuLuc
                     });
@@ -461,11 +512,18 @@ public static class DatabaseSeeder
             }
 
             int femaleIdx = 0;
-            // Xếp sinh viên Nữ vào Tòa C và Tòa D (lấp đầy ~68-75%)
-            foreach (var r in femaleRooms)
+            for (int idx = 0; idx < femaleRooms.Count; idx++)
             {
-                int bedsToFill = (int)Math.Round(r.LoaiPhong.SucChua * 0.70);
-                for (int b = 0; b < bedsToFill && femaleIdx < femaleStudents.Count - 40; b++)
+                var r = femaleRooms[idx];
+                int mod = idx % 6;
+                int bedsToFill = mod switch
+                {
+                    0 or 1 => r.LoaiPhong.SucChua,
+                    5 => 0,
+                    _ => Math.Max(1, (int)Math.Round(r.LoaiPhong.SucChua * 0.68))
+                };
+
+                for (int b = 0; b < bedsToFill && femaleIdx < femaleStudents.Count - 35; b++)
                 {
                     var sv = femaleStudents[femaleIdx++];
                     allocatedMssvs.Add(sv.MSSV);
@@ -474,14 +532,33 @@ public static class DatabaseSeeder
                     {
                         MSSV = sv.MSSV,
                         PhongId = r.Id,
-                        NgayBatDau = new DateTime(2026, 9, 1),
-                        NgayKetThuc = new DateTime(2027, 6, 30),
+                        NgayBatDau = startDate,
+                        NgayKetThuc = normalEndDate,
                         GiaThang = r.LoaiPhong.GiaThang,
-                        MienGiamPhanTram = (sv.DienUuTienId != null && sv.DienUuTienId > 1) ? 15 : 0,
+                        MienGiamPhanTram = (sv.DienUuTienId != null && sv.DienUuTienId > 1 && sv.DienUuTienId < 5) ? 15 : 0,
                         TienCoc = r.LoaiPhong.GiaThang,
                         TrangThai = TrangThaiHopDong.HieuLuc
                     });
                 }
+            }
+
+            // Thêm 16 hợp đồng lịch sử đã trả phòng (DaTra) để tab Lọc Hợp đồng phong phú
+            var unallocated = allStudents.Where(s => !allocatedMssvs.Contains(s.MSSV)).Take(16).ToList();
+            foreach (var sv in unallocated)
+            {
+                var pool = sv.GioiTinh == GioiTinh.Nam ? maleRooms : femaleRooms;
+                var r = pool[Math.Abs(sv.MSSV.GetHashCode()) % pool.Count];
+                contractList.Add(new HopDong
+                {
+                    MSSV = sv.MSSV,
+                    PhongId = r.Id,
+                    NgayBatDau = curMonthDate.AddMonths(-8),
+                    NgayKetThuc = curMonthDate.AddMonths(-2).AddDays(-1),
+                    GiaThang = r.LoaiPhong.GiaThang,
+                    MienGiamPhanTram = 0,
+                    TienCoc = r.LoaiPhong.GiaThang,
+                    TrangThai = TrangThaiHopDong.DaTra
+                });
             }
 
             db.HopDongs.AddRange(contractList);
@@ -499,184 +576,284 @@ public static class DatabaseSeeder
             await db.SaveChangesAsync();
         }
 
-        // 11. Seed Yêu cầu sửa chữa & Bảo trì
+        // 11. Seed 18 Yêu cầu sửa chữa & Bảo trì phong phú trải đều 4 tòa
         if (!await db.YeuCauSuaChuas.AnyAsync())
         {
-            var roomList = await db.Phongs.Take(25).ToListAsync();
+            var allRoomsList = await db.Phongs.OrderBy(p => p.ToaId).ThenBy(p => p.MaPhong).ToListAsync();
+            int PickRoom(int idx) => allRoomsList[idx % allRoomsList.Count].Id;
+
             db.YeuCauSuaChuas.AddRange(
-                new YeuCauSuaChua { PhongId = roomList[0].Id, MoTa = "Rò rỉ vòi nước chậu rửa mặt phòng tắm", TrangThai = "DangXuLy", NgayTao = DateTime.Now.AddDays(-3), ChiPhi = 0 },
-                new YeuCauSuaChua { PhongId = roomList[1].Id, MoTa = "Điều hòa Daikin rung lắc và phát tiếng ồn lớn", TrangThai = "ChuaXuLy", NgayTao = DateTime.Now.AddDays(-1), ChiPhi = 0 },
-                new YeuCauSuaChua { PhongId = roomList[2].Id, MoTa = "Chập cháy bóng đèn tuýp LED chiếu sáng bàn học", TrangThai = "ChuaXuLy", NgayTao = DateTime.Now.AddDays(-2), ChiPhi = 0 },
-                new YeuCauSuaChua { PhongId = roomList[3].Id, MoTa = "Khóa cửa phòng bị kẹt ổ bi khó cắm chìa", TrangThai = "HoanThanh", NgayTao = DateTime.Now.AddDays(-8), NgayHoanThanh = DateTime.Now.AddDays(-5), ChiPhi = 150000, GhiChu = "Đã thay ổ khóa Việt Tiệp mới" },
-                new YeuCauSuaChua { PhongId = roomList[4].Id, MoTa = "Thay vòi hoa sen tăng áp bị nứt vỡ", TrangThai = "HoanThanh", NgayTao = DateTime.Now.AddDays(-14), NgayHoanThanh = DateTime.Now.AddDays(-10), ChiPhi = 220000, GhiChu = "Đã thay mới linh kiện chính hãng" },
-                new YeuCauSuaChua { PhongId = roomList[5].Id, MoTa = "Thông tắc đường ống thoát sàn ban công", TrangThai = "HoanThanh", NgayTao = DateTime.Now.AddDays(-18), NgayHoanThanh = DateTime.Now.AddDays(-12), ChiPhi = 180000 },
-                new YeuCauSuaChua { PhongId = roomList[6].Id, MoTa = "Thay thế ổ cắm điện âm tường bị lỏng chân", TrangThai = "HoanThanh", NgayTao = DateTime.Now.AddDays(-20), NgayHoanThanh = DateTime.Now.AddDays(-15), ChiPhi = 95000 },
-                new YeuCauSuaChua { PhongId = roomList[7].Id, MoTa = "Gia cố bản lề tủ cá nhân sinh viên giường số 3", TrangThai = "HoanThanh", NgayTao = DateTime.Now.AddDays(-25), NgayHoanThanh = DateTime.Now.AddDays(-20), ChiPhi = 120000 }
+                new YeuCauSuaChua { PhongId = PickRoom(0), MoTa = "Rò rỉ vòi nước chậu rửa mặt phòng tắm", TrangThai = "DangXuLy", NgayTao = DateTime.Now.AddDays(-2), ChiPhi = 0, GhiChu = "Kỹ thuật đang kiểm tra gioăng cao su" },
+                new YeuCauSuaChua { PhongId = PickRoom(2), MoTa = "Điều hòa Daikin rung lắc và phát tiếng ồn lớn khi chạy chế độ Cool", TrangThai = "ChuaXuLy", NgayTao = DateTime.Now.AddDays(-1), ChiPhi = 0 },
+                new YeuCauSuaChua { PhongId = PickRoom(31), MoTa = "Chập cháy 2 bóng đèn tuýp LED chiếu sáng khu vực bàn học", TrangThai = "ChuaXuLy", NgayTao = DateTime.Now.AddDays(-1), ChiPhi = 0 },
+                new YeuCauSuaChua { PhongId = PickRoom(62), MoTa = "Bình nóng lạnh Ariston không sáng đèn báo nguồn", TrangThai = "DangXuLy", NgayTao = DateTime.Now.AddDays(-3), ChiPhi = 0, GhiChu = "Đã kiểm tra aptomat chống giật" },
+                new YeuCauSuaChua { PhongId = PickRoom(93), MoTa = "Cửa ban công bị xệ bản lề không đóng kín được", TrangThai = "ChuaXuLy", NgayTao = DateTime.Now.AddHours(-12), ChiPhi = 0 },
+                new YeuCauSuaChua { PhongId = PickRoom(35), MoTa = "Quạt trần quay chậm, kêu lạch cạch ở tốc độ cao", TrangThai = "DangXuLy", NgayTao = DateTime.Now.AddDays(-2), ChiPhi = 0, GhiChu = "Chờ thay tụ điện quạt" },
+                new YeuCauSuaChua { PhongId = PickRoom(65), MoTa = "Vỡ nắp bồn cầu khu vệ sinh chung của phòng", TrangThai = "ChuaXuLy", NgayTao = DateTime.Now.AddHours(-6), ChiPhi = 0 },
+
+                // Đã hoàn thành trong tháng hiện tại (đóng góp chi phí vào Báo cáo Tài chính tháng)
+                new YeuCauSuaChua { PhongId = PickRoom(4), MoTa = "Khóa cửa phòng bị kẹt ổ bi khó cắm chìa", TrangThai = "HoanThanh", NgayTao = DateTime.Now.AddDays(-6), NgayHoanThanh = DateTime.Now.AddDays(-4), ChiPhi = 185000, GhiChu = "Đã thay ổ khóa Việt Tiệp chính hãng" },
+                new YeuCauSuaChua { PhongId = PickRoom(33), MoTa = "Thay vòi hoa sen tăng áp bị nứt vỡ dây dẫn", TrangThai = "HoanThanh", NgayTao = DateTime.Now.AddDays(-9), NgayHoanThanh = DateTime.Now.AddDays(-7), ChiPhi = 240000, GhiChu = "Đã thay bộ sen vòi Inox 304" },
+                new YeuCauSuaChua { PhongId = PickRoom(61), MoTa = "Thông tắc đường ống thoát sàn ban công tầng 2", TrangThai = "HoanThanh", NgayTao = DateTime.Now.AddDays(-11), NgayHoanThanh = DateTime.Now.AddDays(-10), ChiPhi = 200000, GhiChu = "Đã xử lý triệt để bằng máy lò xo" },
+                new YeuCauSuaChua { PhongId = PickRoom(91), MoTa = "Thay thế 3 ổ cắm điện âm tường bị lỏng chân tiếp xúc", TrangThai = "HoanThanh", NgayTao = DateTime.Now.AddDays(-12), NgayHoanThanh = DateTime.Now.AddDays(-10), ChiPhi = 145000, GhiChu = "Thay ổ cắm Sino mới đảm bảo PCCC" },
+                new YeuCauSuaChua { PhongId = PickRoom(10), MoTa = "Gia cố bản lề tủ cá nhân sinh viên giường số 3 và số 4", TrangThai = "HoanThanh", NgayTao = DateTime.Now.AddDays(-14), NgayHoanThanh = DateTime.Now.AddDays(-12), ChiPhi = 160000, GhiChu = "Đã bắt vít gia cố chắc chắn" },
+                new YeuCauSuaChua { PhongId = PickRoom(40), MoTa = "Nạp gas bổ sung và vệ sinh lưới lọc điều hòa định kỳ", TrangThai = "HoanThanh", NgayTao = DateTime.Now.AddDays(-15), NgayHoanThanh = DateTime.Now.AddDays(-13), ChiPhi = 450000, GhiChu = "Gas R32 bổ sung, hoạt động mát sâu" },
+                new YeuCauSuaChua { PhongId = PickRoom(70), MoTa = "Thay thế lưới chống muỗi cửa sổ bị rách", TrangThai = "HoanThanh", NgayTao = DateTime.Now.AddDays(-16), NgayHoanThanh = DateTime.Now.AddDays(-14), ChiPhi = 175000 },
+                new YeuCauSuaChua { PhongId = PickRoom(100), MoTa = "Sửa chữa giát giường tầng 2 bị gãy nan gỗ", TrangThai = "HoanThanh", NgayTao = DateTime.Now.AddDays(-18), NgayHoanThanh = DateTime.Now.AddDays(-16), ChiPhi = 210000, GhiChu = "Đã thay mới 4 thanh giát gỗ keo" },
+                new YeuCauSuaChua { PhongId = PickRoom(15), MoTa = "Thay bóng đèn hành lang cảm biến chuyển động", TrangThai = "HoanThanh", NgayTao = DateTime.Now.AddDays(-22), NgayHoanThanh = DateTime.Now.AddDays(-20), ChiPhi = 130000 },
+                new YeuCauSuaChua { PhongId = PickRoom(48), MoTa = "Thay van khóa tổng đường nước lạnh phòng vệ sinh", TrangThai = "HoanThanh", NgayTao = DateTime.Now.AddDays(-28), NgayHoanThanh = DateTime.Now.AddDays(-26), ChiPhi = 190000 },
+                new YeuCauSuaChua { PhongId = PickRoom(80), MoTa = "Sơn dặm lại mảng tường bong tróc gần cửa sổ", TrangThai = "HoanThanh", NgayTao = DateTime.Now.AddDays(-35), NgayHoanThanh = DateTime.Now.AddDays(-32), ChiPhi = 320000 }
             );
             await db.SaveChangesAsync();
         }
 
-        // 12. Seed Doanh thu 6 tháng gần nhất (Tiền phòng & Tiền điện nước từ Tháng 5 đến Tháng 10)
-        var contracts = await db.HopDongs.ToListAsync();
-        int[] months = { 5, 6, 7, 8, 9, 10 };
+        // 12. Seed Doanh thu 6 tháng gần nhất (động theo DateTime.Today: Tiền phòng & Điện nước & ThanhToan)
+        var activeContracts = await db.HopDongs.Where(h => h.TrangThai == TrangThaiHopDong.HieuLuc).OrderBy(h => h.Id).ToListAsync();
+        var billingRooms = await db.Phongs
+            .Include(p => p.LoaiPhong)
+            .Where(p => p.TrangThai == TrangThaiPhong.HoatDong)
+            .OrderBy(p => p.ToaId).ThenBy(p => p.MaPhong)
+            .Take(60)
+            .ToListAsync();
 
-        if (await db.HoaDonDienNuocs.CountAsync() < 10)
+        for (int offset = 5; offset >= 0; offset--)
         {
-            var activeRooms = await db.Phongs.Include(p => p.LoaiPhong).Where(p => p.TrangThai == TrangThaiPhong.HoatDong).Take(30).ToListAsync();
+            var dt = curMonthDate.AddMonths(-offset);
+            int m = dt.Month;
+            int y = dt.Year;
+            bool isCurrentMonth = (offset == 0);
 
-            // 12.1 Hóa đơn điện nước 6 tháng
-            foreach (var m in months)
+            // 12.1 Hóa đơn điện nước theo từng tháng (tự động bù nếu sang tháng mới)
+            if (!await db.HoaDonDienNuocs.AnyAsync(h => h.Thang == m && h.Nam == y))
             {
-                foreach (var r in activeRooms)
+                var newInvoices = new List<HoaDonDienNuoc>();
+                foreach (var r in billingRooms)
                 {
-                    decimal billAmount = 650000 + ((r.Id * 41000 + m * 55000) % 550000);
-                    bool isPaid = (m < 10) || (r.Id % 6 != 0); // Tháng 10 có 1 vài hóa đơn chưa đóng để tạo cảnh báo
+                    int cap = r.LoaiPhong?.SucChua ?? 6;
+                    decimal baseBill = cap == 4 ? 520000m : (cap == 6 ? 760000m : 980000m);
+                    decimal billAmount = baseBill + ((r.Id * 37000 + m * 43000) % 320000);
+                    string payCode = $"KTXDN_{r.MaPhong}_{m:D2}{y % 100:D2}";
+
+                    TrangThaiHoaDon status;
+                    decimal paid;
+                    if (!isCurrentMonth)
+                    {
+                        status = TrangThaiHoaDon.DaThanhToan;
+                        paid = billAmount;
+                    }
+                    else if (r.Id % 7 == 0)
+                    {
+                        status = TrangThaiHoaDon.ChuaThanhToan;
+                        paid = 0;
+                    }
+                    else if (r.Id % 9 == 0)
+                    {
+                        status = TrangThaiHoaDon.ThanhToanMotPhan;
+                        paid = Math.Round(billAmount * 0.5m / 1000m, 0) * 1000m;
+                    }
+                    else
+                    {
+                        status = TrangThaiHoaDon.DaThanhToan;
+                        paid = billAmount;
+                    }
 
                     var invoice = new HoaDonDienNuoc
                     {
-                        MaThanhToan = $"KTXDN_{r.MaPhong}_{m:D2}26",
+                        MaThanhToan = payCode,
                         PhongId = r.Id,
                         Thang = m,
-                        Nam = 2026,
-                        SoNguoiTinhDinhMuc = r.LoaiPhong.SucChua,
+                        Nam = y,
+                        SoNguoiTinhDinhMuc = cap,
                         TongTien = billAmount,
-                        DaThu = isPaid ? billAmount : 0,
-                        TrangThai = isPaid ? TrangThaiHoaDon.DaThanhToan : TrangThaiHoaDon.ChuaThanhToan
+                        DaThu = paid,
+                        TrangThai = status
                     };
 
+                    decimal elecPart = Math.Round(billAmount * 0.76m, 0);
+                    decimal waterPart = billAmount - elecPart;
                     invoice.ChiTietHoaDons.Add(new ChiTietHoaDon
                     {
-                        NoiDung = $"Tiền điện sinh hoạt Tháng {m}/2026",
-                        SoLuong = 180,
-                        DonGia = 2200,
-                        ThanhTien = billAmount * 0.75m
+                        NoiDung = $"Tiền điện sinh hoạt bậc thang T{m}/{y}",
+                        SoLuong = Math.Round(elecPart / 2300m, 0),
+                        DonGia = 2300,
+                        ThanhTien = elecPart
                     });
                     invoice.ChiTietHoaDons.Add(new ChiTietHoaDon
                     {
-                        NoiDung = $"Tiền nước sinh hoạt Tháng {m}/2026",
-                        SoLuong = 16,
-                        DonGia = 11000,
-                        ThanhTien = billAmount * 0.25m
+                        NoiDung = $"Tiền nước sinh hoạt định mức T{m}/{y}",
+                        SoLuong = Math.Round(waterPart / 10500m, 0),
+                        DonGia = 10500,
+                        ThanhTien = waterPart
                     });
 
-                    db.HoaDonDienNuocs.Add(invoice);
+                    newInvoices.Add(invoice);
                 }
-            }
-            await db.SaveChangesAsync();
-        }
 
-        // 12.2 Khoản thu tiền phòng 6 tháng (tạo khoản thu phòng theo hợp đồng)
-        if (!await db.KhoanThuTienPhongs.AnyAsync() && contracts.Count > 0)
-        {
-            var feeList = new List<KhoanThuTienPhong>();
-            foreach (var m in months)
+                db.HoaDonDienNuocs.AddRange(newInvoices);
+                await db.SaveChangesAsync();
+            }
+
+            // 12.2 Khoản thu tiền phòng theo từng tháng (160 hợp đồng / tháng)
+            if (activeContracts.Count > 0 && !await db.KhoanThuTienPhongs.AnyAsync(k => k.TuNgay.Month == m && k.TuNgay.Year == y))
             {
-                // Chọn 120 hợp đồng mỗi tháng để tạo khoản thu
-                foreach (var c in contracts.Take(120))
+                var feeList = new List<KhoanThuTienPhong>();
+                foreach (var c in activeContracts.Take(160))
                 {
                     decimal fee = c.GiaThang * (100 - c.MienGiamPhanTram) / 100m;
-                    bool isPaid = (m < 10) || (c.Id % 8 != 0);
+                    TrangThaiHoaDon status;
+                    decimal paid;
+                    if (!isCurrentMonth)
+                    {
+                        status = TrangThaiHoaDon.DaThanhToan;
+                        paid = fee;
+                    }
+                    else if (c.Id % 8 == 0)
+                    {
+                        status = TrangThaiHoaDon.ChuaThanhToan;
+                        paid = 0;
+                    }
+                    else if (c.Id % 13 == 0)
+                    {
+                        status = TrangThaiHoaDon.ThanhToanMotPhan;
+                        paid = Math.Round(fee * 0.5m / 1000m, 0) * 1000m;
+                    }
+                    else
+                    {
+                        status = TrangThaiHoaDon.DaThanhToan;
+                        paid = fee;
+                    }
 
                     feeList.Add(new KhoanThuTienPhong
                     {
                         HopDongId = c.Id,
-                        MaThanhToan = $"KTXTP_{c.Id:D4}_{m:D2}26",
-                        TuNgay = new DateTime(2026, m, 1),
-                        DenNgay = new DateTime(2026, m, 1).AddMonths(1).AddDays(-1),
+                        MaThanhToan = $"KTXTP_{c.Id:D4}_{m:D2}{y % 100:D2}",
+                        TuNgay = new DateTime(y, m, 1),
+                        DenNgay = new DateTime(y, m, 1).AddMonths(1).AddDays(-1),
                         SoTienGoc = c.GiaThang,
                         MienGiam = c.GiaThang * c.MienGiamPhanTram / 100m,
                         PhaiThu = fee,
-                        DaThu = isPaid ? fee : 0,
-                        TrangThai = isPaid ? TrangThaiHoaDon.DaThanhToan : TrangThaiHoaDon.ChuaThanhToan
+                        DaThu = paid,
+                        TrangThai = status
                     });
                 }
+
+                db.KhoanThuTienPhongs.AddRange(feeList);
+                await db.SaveChangesAsync();
             }
-            db.KhoanThuTienPhongs.AddRange(feeList);
-            await db.SaveChangesAsync();
         }
 
-        // 13. Seed Giao dịch sao kê ngân hàng mẫu cho phân hệ Đối soát (sinh động, đầy đủ 3 trạng thái)
+        // 13. Seed Giao dịch sao kê ngân hàng mẫu phong phú (30 giao dịch: Đã khớp / Một phần / Cần xử lý)
         if (!await db.GiaoDichNganHangs.AnyAsync())
         {
             var txList = new List<GiaoDichNganHang>();
-            decimal balance = 185000000m;
-
-            // 13.1 Giao dịch khớp chuẩn hóa đơn điện nước (10 giao dịch)
-            var paidInvoices = await db.HoaDonDienNuocs.Include(h => h.Phong).Where(h => h.TrangThai == TrangThaiHoaDon.DaThanhToan).Take(10).ToListAsync();
+            decimal balance = 245000000m;
             int txIndex = 1;
+            string monthTag = $"{curMonthDate.Month:D2}_{curMonthDate.Year}";
+
+            // 13.1 Giao dịch khớp chuẩn hóa đơn điện nước (12 giao dịch)
+            var paidInvoices = await db.HoaDonDienNuocs
+                .Include(h => h.Phong)
+                .Where(h => h.TrangThai == TrangThaiHoaDon.DaThanhToan)
+                .OrderByDescending(h => h.Nam).ThenByDescending(h => h.Thang)
+                .Take(12)
+                .ToListAsync();
+
             foreach (var inv in paidInvoices)
             {
                 balance += inv.TongTien;
                 txList.Add(new GiaoDichNganHang
                 {
-                    NgayGD = DateTime.Now.AddDays(-txIndex).AddHours(-2),
+                    NgayGD = DateTime.Now.AddDays(-(txIndex % 10)).AddHours(-2),
                     SoTien = inv.TongTien,
-                    NoiDungGoc = $"SINH VIEN PHONG {inv.Phong.MaPhong} CK TIEN DIEN NUOC {inv.MaThanhToan}",
-                    MaGiaoDich = $"FT2610{txIndex:D4}",
+                    NoiDungGoc = $"PHONG {inv.Phong.MaPhong} CK TIEN DIEN NUOC {inv.MaThanhToan}",
+                    MaGiaoDich = $"FT{curMonthDate:yyMM}{txIndex:D4}",
                     SoDuSau = balance,
-                    HashSaoKe = $"HASH_SEED_DN_{inv.Id}_{txIndex:D4}",
+                    HashSaoKe = $"SHA256_DN_{inv.Id}_{txIndex:D4}_A9F2C1",
                     TrangThaiKhop = TrangThaiGiaoDich.DaKhop,
-                    FileNguon = "SaoKe_MBBank_T10_2026.xlsx",
-                    NgayImport = DateTime.Now.AddDays(-txIndex)
+                    FileNguon = $"SaoKe_MBBank_T{monthTag}.xlsx",
+                    NgayImport = DateTime.Now.AddDays(-(txIndex % 4))
                 });
                 txIndex++;
             }
 
-            // 13.2 Giao dịch khớp chuẩn tiền phòng (8 giao dịch)
-            var paidFees = await db.KhoanThuTienPhongs.Include(k => k.HopDong).ThenInclude(h => h.SinhVien).Where(k => k.TrangThai == TrangThaiHoaDon.DaThanhToan).Take(8).ToListAsync();
+            // 13.2 Giao dịch khớp chuẩn tiền phòng (10 giao dịch)
+            var paidFees = await db.KhoanThuTienPhongs
+                .Include(k => k.HopDong).ThenInclude(h => h.SinhVien)
+                .Where(k => k.TrangThai == TrangThaiHoaDon.DaThanhToan)
+                .OrderByDescending(k => k.TuNgay)
+                .Take(10)
+                .ToListAsync();
+
             foreach (var fee in paidFees)
             {
                 balance += fee.PhaiThu;
                 txList.Add(new GiaoDichNganHang
                 {
-                    NgayGD = DateTime.Now.AddDays(-txIndex % 5).AddHours(-4),
+                    NgayGD = DateTime.Now.AddDays(-(txIndex % 8)).AddHours(-5),
                     SoTien = fee.PhaiThu,
                     NoiDungGoc = $"SV {fee.HopDong.SinhVien.MSSV} NOP TIEN PHONG {fee.MaThanhToan}",
-                    MaGiaoDich = $"FT2610{txIndex:D4}",
+                    MaGiaoDich = $"FT{curMonthDate:yyMM}{txIndex:D4}",
                     SoDuSau = balance,
-                    HashSaoKe = $"HASH_SEED_TP_{fee.Id}_{txIndex:D4}",
+                    HashSaoKe = $"SHA256_TP_{fee.Id}_{txIndex:D4}_B7E4D0",
                     TrangThaiKhop = TrangThaiGiaoDich.DaKhop,
-                    FileNguon = "SaoKe_MBBank_T10_2026.xlsx",
+                    FileNguon = $"SaoKe_MBBank_T{monthTag}.xlsx",
                     NgayImport = DateTime.Now.AddDays(-1)
                 });
                 txIndex++;
             }
 
-            // 13.3 Giao dịch khớp một phần (2 giao dịch)
-            var pendingInv = await db.HoaDonDienNuocs.Include(h => h.Phong).Where(h => h.TrangThai != TrangThaiHoaDon.DaThanhToan).Take(2).ToListAsync();
-            foreach (var inv in pendingInv)
+            // 13.3 Giao dịch khớp một phần (5 giao dịch)
+            var partialInvs = await db.HoaDonDienNuocs
+                .Include(h => h.Phong)
+                .Where(h => h.TrangThai != TrangThaiHoaDon.DaThanhToan)
+                .OrderByDescending(h => h.Nam).ThenByDescending(h => h.Thang)
+                .Take(5)
+                .ToListAsync();
+
+            foreach (var inv in partialInvs)
             {
-                decimal partial = Math.Round(inv.TongTien * 0.5m, 0);
+                decimal partial = Math.Round(inv.TongTien * 0.5m / 1000m, 0) * 1000m;
                 balance += partial;
                 txList.Add(new GiaoDichNganHang
                 {
-                    NgayGD = DateTime.Now.AddDays(-2),
+                    NgayGD = DateTime.Now.AddDays(-(txIndex % 5)),
                     SoTien = partial,
-                    NoiDungGoc = $"PHONG {inv.Phong.MaPhong} DONG MOT PHAN {inv.MaThanhToan}",
-                    MaGiaoDich = $"FT2610{txIndex:D4}",
+                    NoiDungGoc = $"PHONG {inv.Phong.MaPhong} DONG TRUOC MOT PHAN {inv.MaThanhToan}",
+                    MaGiaoDich = $"FT{curMonthDate:yyMM}{txIndex:D4}",
                     SoDuSau = balance,
-                    HashSaoKe = $"HASH_SEED_PART_{inv.Id}_{txIndex:D4}",
+                    HashSaoKe = $"SHA256_PART_{inv.Id}_{txIndex:D4}_C3A811",
                     TrangThaiKhop = TrangThaiGiaoDich.MotPhan,
-                    FileNguon = "SaoKe_MBBank_T10_2026.xlsx",
+                    FileNguon = $"SaoKe_MBBank_T{monthTag}.xlsx",
                     NgayImport = DateTime.Now
                 });
                 txIndex++;
             }
 
-            // 13.4 Giao dịch cần xử lý (không rõ nội dung / sai cú pháp)
-            balance += 350000m;
-            txList.Add(new GiaoDichNganHang
+            // 13.4 Giao dịch cần kế toán xử lý (3 giao dịch thiếu mã / sai cú pháp)
+            var unmatchedSamples = new (decimal Amount, string Memo)[]
             {
-                NgayGD = DateTime.Now.AddDays(-1),
-                SoTien = 350000m,
-                NoiDungGoc = "NGUYEN VAN HOANG CHUYEN TIEN CHO BAN KHONG RO NOIDUNG",
-                MaGiaoDich = $"FT2610{txIndex:D4}",
-                SoDuSau = balance,
-                HashSaoKe = $"HASH_SEED_UNMATCH_{txIndex:D4}",
-                TrangThaiKhop = TrangThaiGiaoDich.CanXuLy,
-                FileNguon = "SaoKe_MBBank_T10_2026.xlsx",
-                NgayImport = DateTime.Now
-            });
+                (350000m, "NGUYEN VAN HOANG CHUYEN TIEN PHONG KTX NHUNG QUEN MA"),
+                (620000m, "TRAN MINH DUC CK DIEN NUOC THANG NAY"),
+                (450000m, "LE THI LAN ANH NOP TIEN KTX KY 1")
+            };
+
+            foreach (var u in unmatchedSamples)
+            {
+                balance += u.Amount;
+                txList.Add(new GiaoDichNganHang
+                {
+                    NgayGD = DateTime.Now.AddHours(-txIndex),
+                    SoTien = u.Amount,
+                    NoiDungGoc = u.Memo,
+                    MaGiaoDich = $"FT{curMonthDate:yyMM}{txIndex:D4}",
+                    SoDuSau = balance,
+                    HashSaoKe = $"SHA256_UNM_{txIndex:D4}_F912BC",
+                    TrangThaiKhop = TrangThaiGiaoDich.CanXuLy,
+                    FileNguon = $"SaoKe_MBBank_T{monthTag}.xlsx",
+                    NgayImport = DateTime.Now
+                });
+                txIndex++;
+            }
 
             db.GiaoDichNganHangs.AddRange(txList);
             await db.SaveChangesAsync();

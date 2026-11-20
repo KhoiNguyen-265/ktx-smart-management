@@ -35,16 +35,16 @@ public class ReportsView : UserControl, IThemable
             Title = "Báo cáo Tình trạng Lưu trú & Danh sách Sinh viên",
             Subtitle = "Xuất file ClosedXML Excel chuẩn mẫu quản lý KTX, thống kê chi tiết theo từng Tòa, Phòng và Hợp đồng",
             Dock = DockStyle.Top,
-            Height = 160,
-            Padding = new Padding(16, 40, 16, 16)
+            Height = 170,
+            Padding = new Padding(16, 66, 16, 16)
         };
 
         _btnExportOccupancy = new KButton
         {
             Text = "Xuất Báo Cáo Lưu Trú (.xlsx)",
             Style = KButtonStyle.Primary,
-            Location = new Point(20, 25),
-            Size = new Size(250, 42)
+            Location = new Point(4, 16),
+            Size = new Size(255, 42)
         };
         _btnExportOccupancy.Click += async (s, e) => await ExportOccupancyAsync();
 
@@ -61,19 +61,19 @@ public class ReportsView : UserControl, IThemable
             Title = "Báo cáo Tài chính Tháng, Công Nợ & Bảo trì Thiết bị",
             Subtitle = "Xuất file QuestPDF chuẩn văn bản hành chính: thống kê thu chi tiền phòng, điện nước và chi phí sửa chữa",
             Dock = DockStyle.Top,
-            Height = 180,
-            Padding = new Padding(16, 40, 16, 16)
+            Height = 185,
+            Padding = new Padding(16, 66, 16, 16)
         };
 
         var pnlFin = new Panel { Dock = DockStyle.Fill };
 
-        var lblMonth = new Label { Text = "Chọn Tháng:", Location = new Point(20, 25), AutoSize = true };
-        _cboMonth = new ComboBox { Location = new Point(105, 22), Width = 70, DropDownStyle = ComboBoxStyle.DropDownList };
+        var lblMonth = new Label { Text = "Chọn Tháng:", Location = new Point(4, 24), AutoSize = true };
+        _cboMonth = new ComboBox { Location = new Point(92, 20), Width = 70, DropDownStyle = ComboBoxStyle.DropDownList };
         for (int m = 1; m <= 12; m++) _cboMonth.Items.Add(m);
         _cboMonth.SelectedItem = DateTime.Now.Month;
 
-        var lblYear = new Label { Text = "Năm:", Location = new Point(190, 25), AutoSize = true };
-        _cboYear = new ComboBox { Location = new Point(230, 22), Width = 90, DropDownStyle = ComboBoxStyle.DropDownList };
+        var lblYear = new Label { Text = "Năm:", Location = new Point(178, 24), AutoSize = true };
+        _cboYear = new ComboBox { Location = new Point(220, 20), Width = 90, DropDownStyle = ComboBoxStyle.DropDownList };
         for (int y = 2024; y <= 2028; y++) _cboYear.Items.Add(y);
         _cboYear.SelectedItem = DateTime.Now.Year;
 
@@ -81,8 +81,8 @@ public class ReportsView : UserControl, IThemable
         {
             Text = "Xuất Báo Cáo Tài Chính PDF (.pdf)",
             Style = KButtonStyle.Primary,
-            Location = new Point(340, 18),
-            Size = new Size(270, 42)
+            Location = new Point(330, 14),
+            Size = new Size(275, 42)
         };
         _btnExportFinance.Click += async (s, e) => await ExportFinanceAsync();
 

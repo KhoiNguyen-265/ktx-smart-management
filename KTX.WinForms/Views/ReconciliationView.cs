@@ -35,6 +35,7 @@ public class ReconciliationView : UserControl, IThemable
     private readonly DataGridView _gridUnmatched;
 
     private List<BankTransactionDto> _allTransactions = new();
+    private bool _isLoaded;
 
     public ReconciliationView(IReconciliationService reconciliationService)
     {
@@ -80,59 +81,70 @@ public class ReconciliationView : UserControl, IThemable
 
         topBar.Controls.AddRange(new Control[] { _btnImport, _btnDownloadSample, _btnRefresh });
 
-        // 2. Stats & Duplicate Banner
+        // 2. Stats & Duplicate Banner (FlowLayoutPanel prevents overlap!)
         _panelStats = new Panel
         {
             Dock = DockStyle.Top,
-            Height = 65,
+            Height = 66,
             Padding = new Padding(0, 4, 0, 8)
+        };
+
+        var statsRow = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            Height = 28,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false
         };
 
         _lblStatTotal = new Label
         {
             Text = "Tổng GD: 0 | 0 đ",
             Font = UIHelper.GetFont(9.5f, FontStyle.Bold),
-            Location = new Point(0, 6),
-            AutoSize = true
+            AutoSize = true,
+            Margin = new Padding(0, 4, 24, 0)
         };
 
         _lblStatMatched = new Label
         {
-            Text = "Đã khớp: 0",
+            Text = "● Đã khớp: 0",
             ForeColor = Color.FromArgb(46, 125, 50),
             Font = UIHelper.GetFont(9.5f, FontStyle.Bold),
-            Location = new Point(250, 6),
-            AutoSize = true
+            AutoSize = true,
+            Margin = new Padding(0, 4, 24, 0)
         };
 
         _lblStatPartial = new Label
         {
-            Text = "Khớp một phần: 0",
+            Text = "● Khớp một phần: 0",
             ForeColor = Color.FromArgb(230, 81, 0),
             Font = UIHelper.GetFont(9.5f, FontStyle.Bold),
-            Location = new Point(390, 6),
-            AutoSize = true
+            AutoSize = true,
+            Margin = new Padding(0, 4, 24, 0)
         };
 
         _lblStatUnmatched = new Label
         {
-            Text = "Cần xử lý: 0",
+            Text = "● Cần xử lý: 0",
             ForeColor = Color.FromArgb(198, 40, 40),
             Font = UIHelper.GetFont(9.5f, FontStyle.Bold),
-            Location = new Point(560, 6),
-            AutoSize = true
+            AutoSize = true,
+            Margin = new Padding(0, 4, 0, 0)
         };
+
+        statsRow.Controls.AddRange(new Control[] { _lblStatTotal, _lblStatMatched, _lblStatPartial, _lblStatUnmatched });
 
         _lblDuplicateBanner = new Label
         {
             Text = "Cơ chế chống trùng 2 lớp: Mã giao dịch + Chuỗi băm SHA256",
             ForeColor = Color.FromArgb(30, 136, 229),
             Font = UIHelper.GetFont(9f, FontStyle.Regular),
-            Location = new Point(0, 34),
-            AutoSize = true
+            Dock = DockStyle.Bottom,
+            Height = 22
         };
 
-        _panelStats.Controls.AddRange(new Control[] { _lblStatTotal, _lblStatMatched, _lblStatPartial, _lblStatUnmatched, _lblDuplicateBanner });
+        _panelStats.Controls.Add(_lblDuplicateBanner);
+        _panelStats.Controls.Add(statsRow);
 
         // 3. TabControl for 3 statuses
         _tabMain = new TabControl
@@ -162,16 +174,20 @@ public class ReconciliationView : UserControl, IThemable
 
         ApplyTheme(ThemeManager.Current);
 
-        Load += async (s, e) => await LoadTransactionsAsync();
+        Load += async (s, e) => await EnsureLoadedAsync();
     }
 
     protected override async void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
-        if (_allTransactions.Count == 0)
-        {
-            await LoadTransactionsAsync();
-        }
+        await EnsureLoadedAsync();
+    }
+
+    private async Task EnsureLoadedAsync()
+    {
+        if (_isLoaded) return;
+        _isLoaded = true;
+        await LoadTransactionsAsync();
     }
 
     private DataGridView CreateGrid()

@@ -14,7 +14,7 @@ public class DashboardView : UserControl, IThemable
     private readonly IDashboardService _dashboardService;
     private readonly Action<string>? _onNavigate;
 
-    private readonly FlowLayoutPanel _pnlKpi;
+    private readonly TableLayoutPanel _pnlKpi;
     private readonly KStatCard _cardRooms;
     private readonly KStatCard _cardStudents;
     private readonly KStatCard _cardRevenue;
@@ -27,7 +27,9 @@ public class DashboardView : UserControl, IThemable
     private readonly FormsPlot _plotRevenue;
 
     private readonly KCard _cardQuickActions;
-    private readonly FlowLayoutPanel _pnlActionButtons;
+    private readonly TableLayoutPanel _pnlActionButtons;
+    private bool _isLoaded;
+    private DashboardStatsDto? _lastStats;
 
     public DashboardView(IDashboardService dashboardService, Action<string>? onNavigate = null)
     {
@@ -37,64 +39,75 @@ public class DashboardView : UserControl, IThemable
         Dock = DockStyle.Fill;
         DoubleBuffered = true;
         AutoScroll = true;
-        Padding = new Padding(8);
+        Padding = new Padding(4);
 
-        // 1. KPI Cards Row
-        _pnlKpi = new FlowLayoutPanel
+        // 1. KPI Cards Row (Responsive 4-column grid, never clips!)
+        _pnlKpi = new TableLayoutPanel
         {
             Dock = DockStyle.Top,
-            Height = 125,
-            WrapContents = false,
-            AutoScroll = false,
+            Height = 116,
+            ColumnCount = 4,
+            RowCount = 1,
             Padding = new Padding(0, 0, 0, 10)
         };
+        for (int c = 0; c < 4; c++)
+        {
+            _pnlKpi.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25f));
+        }
 
         _cardRooms = new KStatCard
         {
             Title = "Tổng số phòng KTX",
-            Value = "120 phòng",
+            Value = "...",
             TrendText = "▲ Đang tải...",
             IsPositiveTrend = true,
-            Width = 260
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0, 0, 12, 0)
         };
 
         _cardStudents = new KStatCard
         {
             Title = "Sinh viên đang lưu trú",
-            Value = "600 SV",
+            Value = "...",
             TrendText = "● Đang tải...",
             IsPositiveTrend = true,
-            Width = 260
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0, 0, 12, 0)
         };
 
         _cardRevenue = new KStatCard
         {
             Title = "Doanh thu tháng này",
-            Value = "0 đ",
+            Value = "...",
             TrendText = "▲ Đang tải...",
             IsPositiveTrend = true,
-            Width = 260
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0, 0, 12, 0)
         };
 
         _cardAlerts = new KStatCard
         {
             Title = "Cần theo dõi & xử lý",
-            Value = "0 mục",
+            Value = "...",
             TrendText = "● Đang tải...",
             IsPositiveTrend = false,
-            Width = 260
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0)
         };
 
-        _pnlKpi.Controls.AddRange(new Control[] { _cardRooms, _cardStudents, _cardRevenue, _cardAlerts });
+        _pnlKpi.Controls.Add(_cardRooms, 0, 0);
+        _pnlKpi.Controls.Add(_cardStudents, 1, 0);
+        _pnlKpi.Controls.Add(_cardRevenue, 2, 0);
+        _pnlKpi.Controls.Add(_cardAlerts, 3, 0);
 
         // 2. Charts Row
         _pnlCharts = new TableLayoutPanel
         {
             Dock = DockStyle.Top,
-            Height = 360,
+            Height = 390,
             ColumnCount = 2,
             RowCount = 1,
-            Padding = new Padding(0, 10, 0, 10)
+            Padding = new Padding(0, 6, 0, 12)
         };
         _pnlCharts.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
         _pnlCharts.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
@@ -102,9 +115,10 @@ public class DashboardView : UserControl, IThemable
         _cardChartOccupancy = new KCard
         {
             Title = "Tỷ lệ Lấp đầy theo Tòa nhà",
-            Subtitle = "So sánh số chỗ đã có sinh viên ở vs số chỗ còn trống",
+            Subtitle = "So sánh số giường đã có sinh viên ở (Xanh dương) và còn trống (Xanh lá)",
             Dock = DockStyle.Fill,
-            Padding = new Padding(12, 40, 12, 12)
+            Margin = new Padding(0, 0, 12, 0),
+            Padding = new Padding(14, 64, 14, 14)
         };
         _plotOccupancy = new FormsPlot { Dock = DockStyle.Fill };
         _cardChartOccupancy.Controls.Add(_plotOccupancy);
@@ -114,7 +128,8 @@ public class DashboardView : UserControl, IThemable
             Title = "Doanh thu KTX 6 tháng gần nhất",
             Subtitle = "Tổng hợp nguồn thu tiền phòng và điện nước đã ghi nhận (triệu VNĐ)",
             Dock = DockStyle.Fill,
-            Padding = new Padding(12, 40, 12, 12)
+            Margin = new Padding(0),
+            Padding = new Padding(14, 64, 14, 14)
         };
         _plotRevenue = new FormsPlot { Dock = DockStyle.Fill };
         _cardChartRevenue.Controls.Add(_plotRevenue);
@@ -122,32 +137,41 @@ public class DashboardView : UserControl, IThemable
         _pnlCharts.Controls.Add(_cardChartOccupancy, 0, 0);
         _pnlCharts.Controls.Add(_cardChartRevenue, 1, 0);
 
-        // 3. Quick Actions Card
+        // 3. Quick Actions Card (Responsive 6-column grid, never clips!)
         _cardQuickActions = new KCard
         {
             Title = "Lối tắt chức năng nhanh & Thao tác thường dùng",
             Subtitle = "Phím tắt toàn cục: Bấm [Ctrl + K] để mở bảng tìm kiếm thông minh nhanh",
             Dock = DockStyle.Top,
-            Height = 120,
-            Padding = new Padding(16, 40, 16, 16)
+            Height = 136,
+            Padding = new Padding(16, 64, 16, 16)
         };
 
-        _pnlActionButtons = new FlowLayoutPanel
+        _pnlActionButtons = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            WrapContents = false,
-            AutoScroll = false,
-            Padding = new Padding(4)
+            ColumnCount = 6,
+            RowCount = 1,
+            Padding = new Padding(0)
         };
+        for (int c = 0; c < 6; c++)
+        {
+            _pnlActionButtons.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / 6f));
+        }
 
         var btnAlloc = CreateActionButton("Xếp phòng AI", () => _onNavigate?.Invoke("Allocation"));
         var btnMeters = CreateActionButton("Chỉ số Điện Nước", () => _onNavigate?.Invoke("Meters"));
         var btnInvoices = CreateActionButton("Hóa đơn & VietQR", () => _onNavigate?.Invoke("Invoices"));
         var btnReconcile = CreateActionButton("Đối soát Sao kê", () => _onNavigate?.Invoke("Reconcile"));
         var btnMaintenance = CreateActionButton("Báo hỏng / Sự cố", () => _onNavigate?.Invoke("Maintenance"));
-        var btnStudents = CreateActionButton("Quản lý Sinh viên", () => _onNavigate?.Invoke("Students"));
+        var btnStudents = CreateActionButton("Quản lý Sinh viên", () => _onNavigate?.Invoke("Students"), isLast: true);
 
-        _pnlActionButtons.Controls.AddRange(new Control[] { btnAlloc, btnMeters, btnInvoices, btnReconcile, btnMaintenance, btnStudents });
+        _pnlActionButtons.Controls.Add(btnAlloc, 0, 0);
+        _pnlActionButtons.Controls.Add(btnMeters, 1, 0);
+        _pnlActionButtons.Controls.Add(btnInvoices, 2, 0);
+        _pnlActionButtons.Controls.Add(btnReconcile, 3, 0);
+        _pnlActionButtons.Controls.Add(btnMaintenance, 4, 0);
+        _pnlActionButtons.Controls.Add(btnStudents, 5, 0);
         _cardQuickActions.Controls.Add(_pnlActionButtons);
 
         // Layout
@@ -157,23 +181,31 @@ public class DashboardView : UserControl, IThemable
 
         ApplyTheme(ThemeManager.Current);
 
-        Load += async (s, e) => await LoadDashboardDataAsync();
+        Load += async (s, e) => await EnsureLoadedAsync();
     }
 
     protected override async void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
+        await EnsureLoadedAsync();
+    }
+
+    private async Task EnsureLoadedAsync()
+    {
+        if (_isLoaded) return;
+        _isLoaded = true;
         await LoadDashboardDataAsync();
     }
 
-    private KButton CreateActionButton(string text, Action onClick)
+    private KButton CreateActionButton(string text, Action onClick, bool isLast = false)
     {
         var btn = new KButton
         {
             Text = text,
             Style = KButtonStyle.Secondary,
-            Size = new Size(160, 38),
-            Margin = new Padding(0, 0, 12, 0)
+            Dock = DockStyle.Fill,
+            Font = UIHelper.GetFont(9.2f, FontStyle.Bold),
+            Margin = new Padding(0, 4, isLast ? 0 : 10, 4)
         };
         btn.Click += (s, e) => onClick();
         return btn;
@@ -184,6 +216,7 @@ public class DashboardView : UserControl, IThemable
         try
         {
             var stats = await _dashboardService.GetDashboardStatsAsync();
+            _lastStats = stats;
 
             // 1. KPI
             _cardRooms.Value = $"{stats.TotalRooms} phòng";
@@ -195,12 +228,12 @@ public class DashboardView : UserControl, IThemable
             _cardStudents.IsPositiveTrend = true;
 
             _cardRevenue.Value = $"{stats.MonthlyRevenue:N0} đ";
-            _cardRevenue.TrendText = $"▲ Đã ghi nhận trong tháng {DateTime.Now.Month}";
+            _cardRevenue.TrendText = $"▲ Đã thu trong tháng {DateTime.Now.Month}/{DateTime.Now.Year}";
             _cardRevenue.IsPositiveTrend = true;
 
             int alertTotal = stats.ExpiringContracts30Days + stats.PendingMaintenance + stats.UnpaidInvoices;
             _cardAlerts.Value = $"{alertTotal} mục";
-            _cardAlerts.TrendText = $"● {stats.ExpiringContracts30Days} HĐ hết hạn | {stats.PendingMaintenance} sự cố | {stats.UnpaidInvoices} chưa đóng";
+            _cardAlerts.TrendText = $"● {stats.ExpiringContracts30Days} HĐ sắp hết · {stats.PendingMaintenance} sự cố · {stats.UnpaidInvoices} HĐ nợ";
             _cardAlerts.IsPositiveTrend = alertTotal == 0;
 
             // 2. Chart 1: Building Occupancy
@@ -223,41 +256,54 @@ public class DashboardView : UserControl, IThemable
         if (buildings.Count == 0) return;
 
         var currentTheme = ThemeManager.Current;
-        plot.FigureBackground.Color = ScottPlot.Color.FromHex(currentTheme.Mode == ThemeMode.Dark ? "#1E293B" : "#FFFFFF");
-        plot.DataBackground.Color = ScottPlot.Color.FromHex(currentTheme.Mode == ThemeMode.Dark ? "#0F172A" : "#F8FAFC");
+        ApplyPlotTheme(plot, currentTheme);
 
+        var occupiedBars = new List<ScottPlot.Bar>();
+        var availableBars = new List<ScottPlot.Bar>();
         var tickList = new List<ScottPlot.Tick>();
+
         for (int i = 0; i < buildings.Count; i++)
         {
             var b = buildings[i];
-            double x = i * 2.0;
+            double x = i * 2.4;
 
-            // Bar đã ở (Blue)
-            var barOccupied = new ScottPlot.Bar
+            occupiedBars.Add(new ScottPlot.Bar
             {
                 Position = x,
                 Value = b.OccupiedBeds,
                 FillColor = ScottPlot.Color.FromHex("#2563EB"),
                 LineColor = ScottPlot.Color.FromHex("#1D4ED8"),
-                LineWidth = 1
-            };
-            plot.Add.Bar(barOccupied);
+                LineWidth = 1,
+                Label = b.OccupiedBeds.ToString()
+            });
 
-            // Bar còn trống (Teal / Gray)
-            var barAvailable = new ScottPlot.Bar
+            availableBars.Add(new ScottPlot.Bar
             {
-                Position = x + 0.8,
+                Position = x + 0.85,
                 Value = b.AvailableBeds,
                 FillColor = ScottPlot.Color.FromHex("#10B981"),
                 LineColor = ScottPlot.Color.FromHex("#059669"),
-                LineWidth = 1
-            };
-            plot.Add.Bar(barAvailable);
+                LineWidth = 1,
+                Label = b.AvailableBeds.ToString()
+            });
 
-            tickList.Add(new ScottPlot.Tick(x + 0.4, b.BuildingName));
+            tickList.Add(new ScottPlot.Tick(x + 0.425, b.BuildingName));
         }
 
+        var bpOcc = plot.Add.Bars(occupiedBars);
+        bpOcc.LegendText = "Đã ở";
+        bpOcc.ValueLabelStyle.ForeColor = ScottPlot.Color.FromHex(currentTheme.Mode == ThemeMode.Dark ? "#E5E7EB" : "#1F2937");
+        bpOcc.ValueLabelStyle.FontSize = 11;
+
+        var bpAvail = plot.Add.Bars(availableBars);
+        bpAvail.LegendText = "Còn trống";
+        bpAvail.ValueLabelStyle.ForeColor = ScottPlot.Color.FromHex(currentTheme.Mode == ThemeMode.Dark ? "#E5E7EB" : "#1F2937");
+        bpAvail.ValueLabelStyle.FontSize = 11;
+
+        plot.ShowLegend(ScottPlot.Alignment.UpperRight);
+        plot.Axes.Left.Label.Text = "Số giường";
         plot.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.NumericManual(tickList.ToArray());
+        plot.Axes.Margins(bottom: 0, top: 0.22);
         plot.Axes.AutoScale();
         _plotOccupancy.Refresh();
     }
@@ -270,31 +316,48 @@ public class DashboardView : UserControl, IThemable
         if (history.Count == 0) return;
 
         var currentTheme = ThemeManager.Current;
-        plot.FigureBackground.Color = ScottPlot.Color.FromHex(currentTheme.Mode == ThemeMode.Dark ? "#1E293B" : "#FFFFFF");
-        plot.DataBackground.Color = ScottPlot.Color.FromHex(currentTheme.Mode == ThemeMode.Dark ? "#0F172A" : "#F8FAFC");
+        ApplyPlotTheme(plot, currentTheme);
 
+        var bars = new List<ScottPlot.Bar>();
         var tickList = new List<ScottPlot.Tick>();
         for (int i = 0; i < history.Count; i++)
         {
             var h = history[i];
-            double x = i * 1.5;
+            double x = i * 1.4;
+            double million = Math.Round((double)(h.TotalRevenue / 1_000_000m), 1);
 
-            var bar = new ScottPlot.Bar
+            bars.Add(new ScottPlot.Bar
             {
                 Position = x,
-                Value = (double)(h.TotalRevenue / 1_000_000m),
-                FillColor = ScottPlot.Color.FromHex("#8B5CF6"),
-                LineColor = ScottPlot.Color.FromHex("#7C3AED"),
-                LineWidth = 1
-            };
-            plot.Add.Bar(bar);
+                Value = million,
+                FillColor = ScottPlot.Color.FromHex("#7C3AED"),
+                LineColor = ScottPlot.Color.FromHex("#6D28D9"),
+                LineWidth = 1,
+                Label = $"{million:0.#}"
+            });
 
             tickList.Add(new ScottPlot.Tick(x, h.MonthName));
         }
 
+        var bp = plot.Add.Bars(bars);
+        bp.ValueLabelStyle.ForeColor = ScottPlot.Color.FromHex(currentTheme.Mode == ThemeMode.Dark ? "#E5E7EB" : "#1F2937");
+        bp.ValueLabelStyle.FontSize = 11;
+
+        plot.Axes.Left.Label.Text = "Triệu VNĐ";
         plot.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.NumericManual(tickList.ToArray());
+        plot.Axes.Margins(bottom: 0, top: 0.22);
         plot.Axes.AutoScale();
         _plotRevenue.Refresh();
+    }
+
+    private static void ApplyPlotTheme(ScottPlot.Plot plot, Theme theme)
+    {
+        bool isDark = theme.Mode == ThemeMode.Dark;
+        plot.FigureBackground.Color = ScottPlot.Color.FromHex(isDark ? "#181B21" : "#FFFFFF");
+        plot.DataBackground.Color = ScottPlot.Color.FromHex(isDark ? "#0F1115" : "#F8FAFC");
+        var axisColor = ScottPlot.Color.FromHex(isDark ? "#9CA3AF" : "#4B5563");
+        plot.Axes.Color(axisColor);
+        plot.Grid.MajorLineColor = ScottPlot.Color.FromHex(isDark ? "#2A2F38" : "#E5E7EB");
     }
 
     public void ApplyTheme(Theme theme)
@@ -302,16 +365,18 @@ public class DashboardView : UserControl, IThemable
         BackColor = theme.Background;
         _pnlKpi.BackColor = theme.Background;
         _pnlCharts.BackColor = theme.Background;
-        _pnlActionButtons.BackColor = theme.Surface;
+        _pnlActionButtons.BackColor = theme.SurfaceCard;
 
-        if (_plotOccupancy != null && _plotRevenue != null)
+        if (_lastStats != null)
         {
-            _plotOccupancy.Plot.FigureBackground.Color = ScottPlot.Color.FromHex(theme.Mode == ThemeMode.Dark ? "#1E293B" : "#FFFFFF");
-            _plotOccupancy.Plot.DataBackground.Color = ScottPlot.Color.FromHex(theme.Mode == ThemeMode.Dark ? "#0F172A" : "#F8FAFC");
+            RenderOccupancyChart(_lastStats.Buildings);
+            RenderRevenueChart(_lastStats.RevenueHistory);
+        }
+        else if (_plotOccupancy != null && _plotRevenue != null)
+        {
+            ApplyPlotTheme(_plotOccupancy.Plot, theme);
             _plotOccupancy.Refresh();
-
-            _plotRevenue.Plot.FigureBackground.Color = ScottPlot.Color.FromHex(theme.Mode == ThemeMode.Dark ? "#1E293B" : "#FFFFFF");
-            _plotRevenue.Plot.DataBackground.Color = ScottPlot.Color.FromHex(theme.Mode == ThemeMode.Dark ? "#0F172A" : "#F8FAFC");
+            ApplyPlotTheme(_plotRevenue.Plot, theme);
             _plotRevenue.Refresh();
         }
     }

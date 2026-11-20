@@ -139,7 +139,7 @@ public class ReportingService : IReportingService
             {
                 page.Size(PageSizes.A4);
                 page.Margin(30);
-                page.DefaultTextStyle(x => x.FontFamily("Lato").FontSize(10));
+                page.DefaultTextStyle(x => x.FontFamily("Segoe UI").FontSize(10));
 
                 page.Header().Column(col =>
                 {

@@ -338,7 +338,7 @@ public class ContractService : IContractService
             {
                 page.Size(PageSizes.A4);
                 page.Margin(36);
-                page.DefaultTextStyle(x => x.FontFamily("Lato").FontSize(11));
+                page.DefaultTextStyle(x => x.FontFamily("Segoe UI").FontSize(11));
 
                 // Header
                 page.Header().Column(col =>

@@ -18,7 +18,7 @@ public class MaintenanceView : UserControl, IThemable
     private readonly KButton _btnUpdateStatus;
     private readonly KButton _btnRefresh;
 
-    private readonly Panel _panelStats;
+    private readonly FlowLayoutPanel _panelStats;
     private readonly Label _lblStatTotal;
     private readonly Label _lblStatPending;
     private readonly Label _lblStatProcessing;
@@ -27,6 +27,7 @@ public class MaintenanceView : UserControl, IThemable
 
     private readonly DataGridView _grid;
     private List<MaintenanceRequestDto> _requests = new();
+    private bool _isLoaded;
 
     public MaintenanceView(IMaintenanceService maintenanceService, IRoomService roomService)
     {
@@ -84,19 +85,21 @@ public class MaintenanceView : UserControl, IThemable
 
         topBar.Controls.AddRange(new Control[] { lblFilter, _cboStatusFilter, _btnCreate, _btnUpdateStatus, _btnRefresh });
 
-        // Stats Banner
-        _panelStats = new Panel
+        // Stats Banner (FlowLayoutPanel prevents overlap!)
+        _panelStats = new FlowLayoutPanel
         {
             Dock = DockStyle.Top,
-            Height = 45,
-            Padding = new Padding(0, 4, 0, 4)
+            Height = 42,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false,
+            Padding = new Padding(0, 6, 0, 4)
         };
 
-        _lblStatTotal = new Label { Text = "Tổng: 0", Location = new Point(0, 10), AutoSize = true, Font = UIHelper.GetFont(9.5f, FontStyle.Bold) };
-        _lblStatPending = new Label { Text = "Chưa xử lý: 0", Location = new Point(110, 10), AutoSize = true, Font = UIHelper.GetFont(9.5f, FontStyle.Bold), ForeColor = Color.FromArgb(198, 40, 40) };
-        _lblStatProcessing = new Label { Text = "Đang sửa: 0", Location = new Point(240, 10), AutoSize = true, Font = UIHelper.GetFont(9.5f, FontStyle.Bold), ForeColor = Color.FromArgb(230, 81, 0) };
-        _lblStatCompleted = new Label { Text = "Đã xong: 0", Location = new Point(360, 10), AutoSize = true, Font = UIHelper.GetFont(9.5f, FontStyle.Bold), ForeColor = Color.FromArgb(46, 125, 50) };
-        _lblStatCost = new Label { Text = "Tổng chi phí: 0 đ", Location = new Point(490, 10), AutoSize = true, Font = UIHelper.GetFont(9.5f, FontStyle.Bold) };
+        _lblStatTotal = new Label { Text = "Tổng: 0", AutoSize = true, Margin = new Padding(0, 4, 24, 0), Font = UIHelper.GetFont(9.5f, FontStyle.Bold) };
+        _lblStatPending = new Label { Text = "● Chưa xử lý: 0", AutoSize = true, Margin = new Padding(0, 4, 24, 0), Font = UIHelper.GetFont(9.5f, FontStyle.Bold), ForeColor = Color.FromArgb(198, 40, 40) };
+        _lblStatProcessing = new Label { Text = "● Đang sửa: 0", AutoSize = true, Margin = new Padding(0, 4, 24, 0), Font = UIHelper.GetFont(9.5f, FontStyle.Bold), ForeColor = Color.FromArgb(230, 81, 0) };
+        _lblStatCompleted = new Label { Text = "● Đã xong: 0", AutoSize = true, Margin = new Padding(0, 4, 24, 0), Font = UIHelper.GetFont(9.5f, FontStyle.Bold), ForeColor = Color.FromArgb(46, 125, 50) };
+        _lblStatCost = new Label { Text = "Tổng chi phí: 0 đ", AutoSize = true, Margin = new Padding(0, 4, 0, 0), Font = UIHelper.GetFont(9.5f, FontStyle.Bold) };
 
         _panelStats.Controls.AddRange(new Control[] { _lblStatTotal, _lblStatPending, _lblStatProcessing, _lblStatCompleted, _lblStatCost });
 
@@ -127,16 +130,20 @@ public class MaintenanceView : UserControl, IThemable
 
         ApplyTheme(ThemeManager.Current);
 
-        Load += async (s, e) => await LoadDataAsync();
+        Load += async (s, e) => await EnsureLoadedAsync();
     }
 
     protected override async void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
-        if (_requests.Count == 0)
-        {
-            await LoadDataAsync();
-        }
+        await EnsureLoadedAsync();
+    }
+
+    private async Task EnsureLoadedAsync()
+    {
+        if (_isLoaded) return;
+        _isLoaded = true;
+        await LoadDataAsync();
     }
 
     private async Task LoadDataAsync()

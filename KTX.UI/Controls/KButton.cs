@@ -43,16 +43,30 @@ public class KButton : Button, IThemable
         set { _isLoading = value; Invalidate(); }
     }
 
+    protected override bool ShowFocusCues => false;
+
     public KButton()
     {
         SetStyle(ControlStyles.AllPaintingInWmPaint |
                  ControlStyles.OptimizedDoubleBuffer |
                  ControlStyles.ResizeRedraw |
+                 ControlStyles.SupportsTransparentBackColor |
                  ControlStyles.UserPaint, true);
 
+        FlatStyle = FlatStyle.Flat;
+        FlatAppearance.BorderSize = 0;
+        FlatAppearance.MouseDownBackColor = Color.Transparent;
+        FlatAppearance.MouseOverBackColor = Color.Transparent;
+        BackColor = Color.Transparent;
+        TabStop = false;
         Cursor = Cursors.Hand;
         Font = UIHelper.GetFont(10f, FontStyle.Bold);
         Size = new Size(120, 40);
+    }
+
+    protected override void OnPaintBackground(PaintEventArgs pevent)
+    {
+        // Suppress default Windows button background/corner chrome
     }
 
     protected override void OnMouseEnter(EventArgs e)
@@ -93,9 +107,16 @@ public class KButton : Button, IThemable
     {
         var g = e.Graphics;
         g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
         var theme = ThemeManager.Current;
-        var bounds = new Rectangle(0, 0, Width - 1, Height - 1);
+
+        // Clear outer corner area with parent background so rounded corners are crisp
+        var parentBg = Parent?.BackColor ?? theme.Surface;
+        if (parentBg == Color.Transparent) parentBg = theme.Surface;
+        g.Clear(parentBg);
+
+        var bounds = new Rectangle(1, 1, Width - 3, Height - 3);
 
         Color bgColor;
         Color textColor;

@@ -38,8 +38,8 @@ public class CccdScannerDialog : Form, IThemable
 
     public CccdScannerDialog()
     {
-        Text = "📷 Quét & Trích xuất Mã QR Thẻ Căn Cước Công Dân (CCCD)";
-        ClientSize = new Size(680, 520);
+        Text = "Quét & Trích xuất Mã QR Thẻ Căn Cước Công Dân (CCCD)";
+        ClientSize = new Size(700, 540);
         StartPosition = FormStartPosition.CenterParent;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
@@ -53,7 +53,7 @@ public class CccdScannerDialog : Form, IThemable
         };
 
         // Tab 1: Máy quét mã vạch / Chuỗi văn bản
-        _tabText = new TabPage("⚡ Quét từ máy Barcode / Dán chuỗi QR");
+        _tabText = new TabPage("Quét từ máy Barcode / Dán chuỗi QR");
         var pnlText = new Panel { Dock = DockStyle.Fill, Padding = new Padding(12) };
 
         var lblGuide = new Label
@@ -66,7 +66,7 @@ public class CccdScannerDialog : Form, IThemable
         _txtRawInput = new TextBox
         {
             Location = new Point(12, 35),
-            Width = 510,
+            Width = 530,
             Height = 65,
             Multiline = true,
             Font = UIHelper.GetFont(9.5f)
@@ -77,7 +77,7 @@ public class CccdScannerDialog : Form, IThemable
         {
             Text = "Phân tích",
             Style = KButtonStyle.Primary,
-            Location = new Point(535, 35),
+            Location = new Point(555, 35),
             Size = new Size(110, 65)
         };
         _btnParseText.Click += (s, e) => ProcessRawInput();
@@ -86,12 +86,12 @@ public class CccdScannerDialog : Form, IThemable
         _tabText.Controls.Add(pnlText);
 
         // Tab 2: Tệp hình ảnh
-        _tabImage = new TabPage("🖼️ Chọn ảnh chụp CCCD từ máy tính");
+        _tabImage = new TabPage("Chọn ảnh chụp CCCD từ máy tính");
         var pnlImage = new Panel { Dock = DockStyle.Fill, Padding = new Padding(12) };
 
         _btnBrowseImage = new KButton
         {
-            Text = "📁 Chọn tệp ảnh (.png, .jpg)...",
+            Text = "Chọn tệp ảnh (.png, .jpg)...",
             Style = KButtonStyle.Secondary,
             Location = new Point(12, 20),
             Size = new Size(220, 38)
@@ -101,7 +101,7 @@ public class CccdScannerDialog : Form, IThemable
         _picPreview = new PictureBox
         {
             Location = new Point(250, 10),
-            Size = new Size(390, 100),
+            Size = new Size(410, 100),
             SizeMode = PictureBoxSizeMode.Zoom,
             BorderStyle = BorderStyle.FixedSingle
         };
@@ -117,7 +117,7 @@ public class CccdScannerDialog : Form, IThemable
             Title = "Thông tin Căn Cước trích xuất được",
             Subtitle = "Hệ thống tự động chuẩn hóa họ tên và ánh xạ tỉnh thành quê quán",
             Dock = DockStyle.Fill,
-            Padding = new Padding(16, 40, 16, 16)
+            Padding = new Padding(16, 66, 16, 16)
         };
 
         var pnlDetails = new Panel
@@ -126,12 +126,12 @@ public class CccdScannerDialog : Form, IThemable
             Padding = new Padding(8)
         };
 
-        _lblCccd = CreateInfoLabel("Số CCCD: (Chưa có dữ liệu)", 10);
-        _lblHoTen = CreateInfoLabel("Họ và tên: ---", 40);
-        _lblNgaySinh = CreateInfoLabel("Ngày sinh: ---", 70);
-        _lblGioiTinh = CreateInfoLabel("Giới tính: ---", 100);
-        _lblDiaChi = CreateInfoLabel("Nơi thường trú: ---", 130);
-        _lblTinhThanh = CreateInfoLabel("Tỉnh/TP nhận diện: ---", 175);
+        _lblCccd = CreateInfoLabel("Số CCCD: (Chưa có dữ liệu)", 6);
+        _lblHoTen = CreateInfoLabel("Họ và tên: ---", 36);
+        _lblNgaySinh = CreateInfoLabel("Ngày sinh: ---", 66);
+        _lblGioiTinh = CreateInfoLabel("Giới tính: ---", 96);
+        _lblDiaChi = CreateInfoLabel("Nơi thường trú: ---", 126);
+        _lblTinhThanh = CreateInfoLabel("Tỉnh/TP nhận diện: ---", 162);
         _lblTinhThanh.Font = UIHelper.GetFont(9.5f, FontStyle.Bold);
         _lblTinhThanh.ForeColor = Color.FromArgb(21, 101, 192);
 
@@ -142,17 +142,24 @@ public class CccdScannerDialog : Form, IThemable
         var bottomBar = new Panel
         {
             Dock = DockStyle.Bottom,
-            Height = 55,
-            Padding = new Padding(16, 8, 16, 8)
+            Height = 58,
+            Padding = new Padding(16, 10, 16, 10)
+        };
+
+        var pnlBottomButtons = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Right,
+            AutoSize = true,
+            FlowDirection = FlowDirection.RightToLeft,
+            WrapContents = false
         };
 
         _btnApply = new KButton
         {
-            Text = "✅ Điền vào thông tin Sinh viên",
+            Text = "Điền vào thông tin Sinh viên",
             Style = KButtonStyle.Primary,
-            Size = new Size(230, 36),
-            Location = new Point(ClientSize.Width - 250, 8),
-            Anchor = AnchorStyles.Bottom | AnchorStyles.Right,
+            Size = new Size(220, 38),
+            Margin = new Padding(10, 0, 0, 0),
             Enabled = false
         };
         _btnApply.Click += (s, e) =>
@@ -165,9 +172,8 @@ public class CccdScannerDialog : Form, IThemable
         {
             Text = "Đóng",
             Style = KButtonStyle.Secondary,
-            Size = new Size(90, 36),
-            Location = new Point(ClientSize.Width - 350, 8),
-            Anchor = AnchorStyles.Bottom | AnchorStyles.Right
+            Size = new Size(95, 38),
+            Margin = new Padding(0)
         };
         _btnCancel.Click += (s, e) =>
         {
@@ -175,7 +181,9 @@ public class CccdScannerDialog : Form, IThemable
             Close();
         };
 
-        bottomBar.Controls.AddRange(new Control[] { _btnCancel, _btnApply });
+        pnlBottomButtons.Controls.Add(_btnApply);
+        pnlBottomButtons.Controls.Add(_btnCancel);
+        bottomBar.Controls.Add(pnlBottomButtons);
 
         // Add to Form
         Controls.Add(_cardResult);

@@ -57,11 +57,11 @@ public class ComprehensiveFeatureTests
         (await db.SinhViens.CountAsync()).Should().Be(600);
         (await db.DonDangKys.CountAsync()).Should().Be(500);
         (await db.HopDongs.CountAsync()).Should().BeGreaterThan(400);
-        (await db.ChiSoDienNuocs.CountAsync()).Should().BeGreaterThanOrEqualTo(60);
-        (await db.YeuCauSuaChuas.CountAsync()).Should().Be(8);
-        (await db.HoaDonDienNuocs.CountAsync()).Should().BeGreaterThan(100);
-        (await db.KhoanThuTienPhongs.CountAsync()).Should().BeGreaterThan(500);
-        (await db.GiaoDichNganHangs.CountAsync()).Should().BeGreaterThanOrEqualTo(20);
+        (await db.ChiSoDienNuocs.CountAsync()).Should().BeGreaterThanOrEqualTo(340);
+        (await db.YeuCauSuaChuas.CountAsync()).Should().Be(18);
+        (await db.HoaDonDienNuocs.CountAsync()).Should().Be(360);
+        (await db.KhoanThuTienPhongs.CountAsync()).Should().Be(960);
+        (await db.GiaoDichNganHangs.CountAsync()).Should().Be(30);
     }
 
     [Fact]
@@ -340,7 +340,10 @@ public class ComprehensiveFeatureTests
 
         // Act: Get existing stats
         var statsBefore = await maintenanceService.GetStatsAsync();
-        statsBefore.TotalRequests.Should().Be(8);
+        statsBefore.TotalRequests.Should().Be(18);
+        statsBefore.PendingCount.Should().Be(4);
+        statsBefore.ProcessingCount.Should().Be(3);
+        statsBefore.CompletedCount.Should().Be(11);
 
         // Act: Create new maintenance request
         var newReqDto = new MaintenanceCreateDto
@@ -374,7 +377,7 @@ public class ComprehensiveFeatureTests
         update2.Should().BeTrue();
 
         var statsAfter = await maintenanceService.GetStatsAsync();
-        statsAfter.TotalRequests.Should().Be(9);
+        statsAfter.TotalRequests.Should().Be(19);
         statsAfter.CompletedCount.Should().Be(statsBefore.CompletedCount + 1);
         statsAfter.TotalCost.Should().Be(statsBefore.TotalCost + 120000m);
     }
@@ -402,8 +405,8 @@ public class ComprehensiveFeatureTests
         var ws = workbook.Worksheets.First();
         ws.Cell("A2").Value.ToString().Should().Contain("BÁO CÁO");
 
-        // Act 2: Generate QuestPDF Financial Report
-        byte[] pdfReport = await reportingService.ExportFinancialReportPdfAsync(10, 2026);
+        // Act 2: Generate QuestPDF Financial Report for CURRENT month
+        byte[] pdfReport = await reportingService.ExportFinancialReportPdfAsync(DateTime.Today.Month, DateTime.Today.Year);
         pdfReport.Should().NotBeNull();
         pdfReport.Length.Should().BeGreaterThan(5000);
 
@@ -433,7 +436,7 @@ public class ComprehensiveFeatureTests
         stats.OccupiedBeds.Should().BeGreaterThan(400);
         stats.ActiveContracts.Should().BeGreaterThan(400);
         stats.ExpiringContracts30Days.Should().Be(14);
-        stats.PendingMaintenance.Should().Be(3);
+        stats.PendingMaintenance.Should().Be(7);
         stats.MonthlyRevenue.Should().BeGreaterThan(50_000_000m);
 
         stats.Buildings.Should().HaveCount(4);
@@ -441,5 +444,172 @@ public class ComprehensiveFeatureTests
 
         stats.RevenueHistory.Should().HaveCount(6);
         stats.RevenueHistory.All(h => h.TotalRevenue > 0).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task UtilityMeters_AbnormalDetectionAndMeterReplacement_ShouldWorkCorrectly()
+    {
+        using (var db = new KtxDbContext(_dbOptions))
+        {
+            await DatabaseSeeder.SeedAsync(db);
+        }
+
+        var factory = CreateMockFactory();
+        var configService = new ConfigurationService(factory);
+        var billingService = new TieredBillingService(factory, configService);
+
+        // Verify current month has readings for all active rooms & flags abnormal consumption
+        var currentReadings = await billingService.GetReadingsAsync(DateTime.Today.Month, DateTime.Today.Year);
+        currentReadings.Count.Should().BeGreaterThanOrEqualTo(116);
+        currentReadings.Count(r => r.CanhBaoTieuThuBatThuong).Should().BeGreaterThanOrEqualTo(5);
+
+        // Verify meter replacement calculation & validation
+        var sampleRoom = currentReadings.First();
+        Func<Task> missingNoteAction = () => billingService.SaveReadingAsync(new UtilityReadingSaveDto
+        {
+            PhongId = sampleRoom.PhongId,
+            Thang = DateTime.Today.Month,
+            Nam = DateTime.Today.Year,
+            DienCu = 300,
+            DienMoi = 40,
+            CoThayDongHoDien = true,
+            DienChotDongHoCu = 360,
+            DienDauDongHoMoi = 0,
+            NuocCu = sampleRoom.NuocCu,
+            NuocMoi = sampleRoom.NuocMoi,
+            GhiChu = ""
+        });
+        await missingNoteAction.Should().ThrowAsync<InvalidOperationException>();
+
+        var saved = await billingService.SaveReadingAsync(new UtilityReadingSaveDto
+        {
+            PhongId = sampleRoom.PhongId,
+            Thang = DateTime.Today.Month,
+            Nam = DateTime.Today.Year,
+            DienCu = 300,
+            DienMoi = 40,
+            CoThayDongHoDien = true,
+            DienChotDongHoCu = 360,
+            DienDauDongHoMoi = 0,
+            NuocCu = sampleRoom.NuocCu,
+            NuocMoi = sampleRoom.NuocMoi,
+            GhiChu = "Thay đồng hồ mới định kỳ"
+        });
+        saved.Should().BeTrue();
+
+        var reloaded = (await billingService.GetReadingsAsync(DateTime.Today.Month, DateTime.Today.Year))
+            .First(r => r.PhongId == sampleRoom.PhongId);
+        reloaded.SanLuongDien.Should().Be(100m); // (360 - 300) + (40 - 0)
+    }
+
+    [Fact]
+    public async Task Rooms_AllFourOccupancyStates_ShouldExistAcrossSeededDataset()
+    {
+        using (var db = new KtxDbContext(_dbOptions))
+        {
+            await DatabaseSeeder.SeedAsync(db);
+        }
+
+        var factory = CreateMockFactory();
+        var roomService = new RoomService(factory);
+        var allRooms = await roomService.GetAllRoomsAsync();
+
+        allRooms.Should().HaveCount(120);
+        allRooms.Any(r => r.TrangThai == TrangThaiPhong.BaoTri).Should().BeTrue();
+        allRooms.Any(r => r.TrangThai == TrangThaiPhong.HoatDong && r.SoNguoiDangO == 0).Should().BeTrue();
+        allRooms.Any(r => r.TrangThai == TrangThaiPhong.HoatDong && r.SoNguoiDangO > 0 && r.SoNguoiDangO < r.SucChua).Should().BeTrue();
+        allRooms.Any(r => r.TrangThai == TrangThaiPhong.HoatDong && r.SoNguoiDangO >= r.SucChua).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task CurrentMonth_InvoicesAndBankTransactions_ShouldHaveAllStatuses()
+    {
+        using (var db = new KtxDbContext(_dbOptions))
+        {
+            await DatabaseSeeder.SeedAsync(db);
+        }
+
+        var factory = CreateMockFactory();
+        var configService = new ConfigurationService(factory);
+        var billingService = new TieredBillingService(factory, configService);
+        var reconcileService = new ReconciliationService(factory);
+
+        var curInvoices = await billingService.GetInvoicesAsync(DateTime.Today.Month, DateTime.Today.Year);
+        curInvoices.Should().HaveCount(60);
+        curInvoices.Any(i => i.TrangThai == TrangThaiHoaDon.DaThanhToan).Should().BeTrue();
+        curInvoices.Any(i => i.TrangThai == TrangThaiHoaDon.ThanhToanMotPhan).Should().BeTrue();
+        curInvoices.Any(i => i.TrangThai == TrangThaiHoaDon.ChuaThanhToan).Should().BeTrue();
+
+        var txs = await reconcileService.GetTransactionsAsync();
+        txs.Should().HaveCount(30);
+        txs.Count(t => t.TrangThaiKhop == TrangThaiGiaoDich.DaKhop).Should().Be(22);
+        txs.Count(t => t.TrangThaiKhop == TrangThaiGiaoDich.MotPhan).Should().Be(5);
+        txs.Count(t => t.TrangThaiKhop == TrangThaiGiaoDich.CanXuLy).Should().Be(3);
+    }
+
+    [Fact]
+    public async Task AuthService_RoleLoginAndInvalidCredentials_ShouldWorkCorrectly()
+    {
+        using (var db = new KtxDbContext(_dbOptions))
+        {
+            await DatabaseSeeder.SeedAsync(db);
+        }
+
+        var factory = CreateMockFactory();
+        var authService = new AuthService(factory);
+
+        var admin = await authService.LoginAsync(new LoginRequest { Username = "admin", Password = "admin123" });
+        admin.Success.Should().BeTrue();
+        admin.Session!.RoleName.Should().Be("Admin");
+
+        var quanly = await authService.LoginAsync(new LoginRequest { Username = "quanly", Password = "quanly123" });
+        quanly.Success.Should().BeTrue();
+        quanly.Session!.RoleName.Should().Be("QuanLy");
+
+        var ketoan = await authService.LoginAsync(new LoginRequest { Username = "ketoan", Password = "ketoan123" });
+        ketoan.Success.Should().BeTrue();
+        ketoan.Session!.RoleName.Should().Be("KeToan");
+
+        var invalid = await authService.LoginAsync(new LoginRequest { Username = "admin", Password = "wrongpassword" });
+        invalid.Success.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Contracts_MultiFloorTransferAndPdfExport_ShouldSucceed()
+    {
+        using (var db = new KtxDbContext(_dbOptions))
+        {
+            await DatabaseSeeder.SeedAsync(db);
+        }
+
+        var factory = CreateMockFactory();
+        var contractService = new ContractService(factory);
+        var roomService = new RoomService(factory);
+
+        var activePaged = await contractService.GetContractsPagedAsync(status: TrangThaiHopDong.HieuLuc, pageIndex: 1, pageSize: 10);
+        var checkedOutPaged = await contractService.GetContractsPagedAsync(status: TrangThaiHopDong.DaTra, pageIndex: 1, pageSize: 20);
+        checkedOutPaged.TotalCount.Should().Be(16);
+
+        var sample = activePaged.Items.First();
+        var allRooms = await roomService.GetAllRoomsAsync();
+        var floor2PlusTarget = allRooms.First(r =>
+            r.Tang >= 2 &&
+            r.TrangThai == TrangThaiPhong.HoatDong &&
+            r.SoChoTrong > 0 &&
+            r.TenToa == sample.ToaTen &&
+            r.MaPhong != sample.MaPhong);
+
+        var transfer = await contractService.TransferRoomAsync(new RoomTransferRequestDto
+        {
+            HopDongId = sample.Id,
+            DenPhongId = floor2PlusTarget.Id,
+            LyDo = "Chuyển lên tầng cao hơn"
+        });
+        transfer.Success.Should().BeTrue();
+
+        var pdfBytes = await contractService.ExportContractPdfAsync(sample.Id);
+        pdfBytes.Should().NotBeNull();
+        pdfBytes.Length.Should().BeGreaterThan(3000);
+        pdfBytes.Take(4).ToArray().Should().Equal(new byte[] { 0x25, 0x50, 0x44, 0x46 });
     }
 }

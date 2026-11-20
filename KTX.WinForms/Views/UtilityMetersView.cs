@@ -19,6 +19,30 @@ public class UtilityMetersView : UserControl, IThemable
     private readonly KButton _btnSave;
     private readonly DataGridView _grid;
     private List<UtilityReadingDto> _readings = new();
+    private List<UtilityReadingRow> _rows = new();
+    private bool _isInitialized;
+
+    private class UtilityReadingRow
+    {
+        public int Id { get; set; }
+        public int PhongId { get; set; }
+        public string MaPhong { get; set; } = string.Empty;
+        public string ToaTen { get; set; } = string.Empty;
+        public decimal DienCu { get; set; }
+        public decimal DienMoi { get; set; }
+        public bool CoThayDongHoDien { get; set; }
+        public decimal? DienChotDongHoCu { get; set; }
+        public decimal? DienDauDongHoMoi { get; set; }
+        public decimal SanLuongDien { get; set; }
+        public decimal NuocCu { get; set; }
+        public decimal NuocMoi { get; set; }
+        public bool CoThayDongHoNuoc { get; set; }
+        public decimal? NuocChotDongHoCu { get; set; }
+        public decimal? NuocDauDongHoMoi { get; set; }
+        public decimal SanLuongNuoc { get; set; }
+        public string CanhBaoText { get; set; } = string.Empty;
+        public string? GhiChu { get; set; }
+    }
 
     public UtilityMetersView(ITieredBillingService billingService, IRoomService roomService)
     {
@@ -36,17 +60,20 @@ public class UtilityMetersView : UserControl, IThemable
         };
 
         var lblMonth = new Label { Text = "Tháng:", Location = new Point(0, 18), AutoSize = true };
-        _cboMonth = new ComboBox { Location = new Point(50, 14), Width = 70, DropDownStyle = ComboBoxStyle.DropDownList };
+        _cboMonth = new ComboBox { Location = new Point(52, 14), Width = 70, DropDownStyle = ComboBoxStyle.DropDownList };
         for (int m = 1; m <= 12; m++) _cboMonth.Items.Add(m);
         _cboMonth.SelectedItem = DateTime.Now.Month;
+        _cboMonth.SelectedIndexChanged += async (s, e) => { if (_isInitialized) await LoadReadingsAsync(); };
 
         var lblYear = new Label { Text = "Năm:", Location = new Point(135, 18), AutoSize = true };
-        _cboYear = new ComboBox { Location = new Point(175, 14), Width = 90, DropDownStyle = ComboBoxStyle.DropDownList };
+        _cboYear = new ComboBox { Location = new Point(178, 14), Width = 90, DropDownStyle = ComboBoxStyle.DropDownList };
         for (int y = 2024; y <= 2028; y++) _cboYear.Items.Add(y);
         _cboYear.SelectedItem = DateTime.Now.Year;
+        _cboYear.SelectedIndexChanged += async (s, e) => { if (_isInitialized) await LoadReadingsAsync(); };
 
-        var lblBld = new Label { Text = "Tòa:", Location = new Point(280, 18), AutoSize = true };
-        _cboBuilding = new ComboBox { Location = new Point(315, 14), Width = 150, DropDownStyle = ComboBoxStyle.DropDownList };
+        var lblBld = new Label { Text = "Tòa:", Location = new Point(282, 18), AutoSize = true };
+        _cboBuilding = new ComboBox { Location = new Point(318, 14), Width = 155, DropDownStyle = ComboBoxStyle.DropDownList };
+        _cboBuilding.SelectedIndexChanged += async (s, e) => { if (_isInitialized) await LoadReadingsAsync(); };
 
         _btnLoad = new KButton
         {
@@ -83,16 +110,20 @@ public class UtilityMetersView : UserControl, IThemable
         Controls.Add(topBar);
 
         ApplyTheme(ThemeManager.Current);
-        Load += async (s, e) => await InitializeAsync();
+        Load += async (s, e) => await EnsureInitializedAsync();
     }
 
     protected override async void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
-        if (_readings.Count == 0)
-        {
-            await InitializeAsync();
-        }
+        await EnsureInitializedAsync();
+    }
+
+    private async Task EnsureInitializedAsync()
+    {
+        if (_isInitialized) return;
+        _isInitialized = true;
+        await InitializeAsync();
     }
 
     private void SetupColumns()
@@ -135,6 +166,7 @@ public class UtilityMetersView : UserControl, IThemable
     private async Task InitializeAsync()
     {
         var buildings = await _roomService.GetBuildingsAsync();
+        _cboBuilding.Items.Clear();
         _cboBuilding.Items.Add(new BuildingDto { Id = 0, Ten = "Tất cả các tòa" });
         foreach (var b in buildings) _cboBuilding.Items.Add(b);
         _cboBuilding.DisplayMember = "Ten";
@@ -152,32 +184,36 @@ public class UtilityMetersView : UserControl, IThemable
 
         _readings = await _billingService.GetReadingsAsync(month, year, bldId);
 
-        _grid.AutoGenerateColumns = false;
-        _grid.DataSource = _readings.Select(r => new
+        _rows = _readings.Select(r => new UtilityReadingRow
         {
-            r.Id,
-            r.PhongId,
-            r.MaPhong,
-            r.ToaTen,
-            r.DienCu,
-            r.DienMoi,
-            r.CoThayDongHoDien,
-            r.DienChotDongHoCu,
-            r.DienDauDongHoMoi,
-            r.SanLuongDien,
-            r.NuocCu,
-            r.NuocMoi,
-            r.CoThayDongHoNuoc,
-            r.NuocChotDongHoCu,
-            r.NuocDauDongHoMoi,
-            r.SanLuongNuoc,
-            CanhBaoText = r.CanhBaoTieuThuBatThuong ? "⚠️ Bất thường" : "Bình thường",
-            r.GhiChu
+            Id = r.Id,
+            PhongId = r.PhongId,
+            MaPhong = r.MaPhong,
+            ToaTen = r.ToaTen,
+            DienCu = r.DienCu,
+            DienMoi = r.DienMoi,
+            CoThayDongHoDien = r.CoThayDongHoDien,
+            DienChotDongHoCu = r.DienChotDongHoCu,
+            DienDauDongHoMoi = r.DienDauDongHoMoi,
+            SanLuongDien = r.SanLuongDien,
+            NuocCu = r.NuocCu,
+            NuocMoi = r.NuocMoi,
+            CoThayDongHoNuoc = r.CoThayDongHoNuoc,
+            NuocChotDongHoCu = r.NuocChotDongHoCu,
+            NuocDauDongHoMoi = r.NuocDauDongHoMoi,
+            SanLuongNuoc = r.SanLuongNuoc,
+            CanhBaoText = r.CanhBaoTieuThuBatThuong ? "● Bất thường" : "Bình thường",
+            GhiChu = r.GhiChu
         }).ToList();
+
+        _grid.AutoGenerateColumns = false;
+        _grid.DataSource = null;
+        _grid.DataSource = _rows;
     }
 
     private async Task SaveAllReadingsAsync()
     {
+        _grid.EndEdit();
         int month = (int)(_cboMonth.SelectedItem ?? DateTime.Now.Month);
         int year = (int)(_cboYear.SelectedItem ?? DateTime.Now.Year);
 
@@ -185,30 +221,26 @@ public class UtilityMetersView : UserControl, IThemable
         int errorCount = 0;
         var errorMessages = new List<string>();
 
-        foreach (DataGridViewRow row in _grid.Rows)
+        foreach (var item in _rows)
         {
-            if (row.DataBoundItem == null) continue;
-            dynamic item = row.DataBoundItem;
-            int phongId = item.PhongId;
-
             try
             {
                 var saveDto = new UtilityReadingSaveDto
                 {
-                    PhongId = phongId,
+                    PhongId = item.PhongId,
                     Thang = month,
                     Nam = year,
-                    DienCu = (decimal)item.DienCu,
-                    DienMoi = (decimal)item.DienMoi,
-                    CoThayDongHoDien = (bool)item.CoThayDongHoDien,
-                    DienChotDongHoCu = item.DienChotDongHoCu != null ? (decimal)item.DienChotDongHoCu : null,
-                    DienDauDongHoMoi = item.DienDauDongHoMoi != null ? (decimal)item.DienDauDongHoMoi : null,
-                    NuocCu = (decimal)item.NuocCu,
-                    NuocMoi = (decimal)item.NuocMoi,
-                    CoThayDongHoNuoc = (bool)item.CoThayDongHoNuoc,
-                    NuocChotDongHoCu = item.NuocChotDongHoCu != null ? (decimal)item.NuocChotDongHoCu : null,
-                    NuocDauDongHoMoi = item.NuocDauDongHoMoi != null ? (decimal)item.NuocDauDongHoMoi : null,
-                    GhiChu = item.GhiChu?.ToString()
+                    DienCu = item.DienCu,
+                    DienMoi = item.DienMoi,
+                    CoThayDongHoDien = item.CoThayDongHoDien,
+                    DienChotDongHoCu = item.DienChotDongHoCu,
+                    DienDauDongHoMoi = item.DienDauDongHoMoi,
+                    NuocCu = item.NuocCu,
+                    NuocMoi = item.NuocMoi,
+                    CoThayDongHoNuoc = item.CoThayDongHoNuoc,
+                    NuocChotDongHoCu = item.NuocChotDongHoCu,
+                    NuocDauDongHoMoi = item.NuocDauDongHoMoi,
+                    GhiChu = item.GhiChu
                 };
 
                 await _billingService.SaveReadingAsync(saveDto);

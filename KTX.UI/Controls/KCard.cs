@@ -55,9 +55,14 @@ public class KCard : Panel, IThemable
     {
         var g = e.Graphics;
         g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
         var theme = ThemeManager.Current;
-        var bounds = new Rectangle(0, 0, Width - 1, Height - 1);
+        var parentBg = Parent?.BackColor ?? theme.Background;
+        if (parentBg == Color.Transparent) parentBg = theme.Background;
+        g.Clear(parentBg);
+
+        var bounds = new Rectangle(1, 1, Width - 3, Height - 3);
 
         using var path = UIHelper.CreateRoundedRectangle(bounds, _borderRadius);
 
@@ -73,21 +78,24 @@ public class KCard : Panel, IThemable
             g.DrawPath(pen, path);
         }
 
-        // Draw Title & Subtitle if provided
-        int currentY = 16;
+        // Draw Title & Subtitle with crisp ClearType TextRenderer
+        int currentY = 14;
+        int textWidth = Math.Max(10, Width - 32);
         if (!string.IsNullOrEmpty(_title))
         {
-            using var titleFont = UIHelper.GetFont(12f, FontStyle.Bold);
-            using var titleBrush = new SolidBrush(theme.TextPrimary);
-            g.DrawString(_title, titleFont, titleBrush, 16, currentY);
-            currentY += titleFont.Height + 2;
+            using var titleFont = UIHelper.GetFont(11.5f, FontStyle.Bold);
+            var titleRect = new Rectangle(16, currentY, textWidth, 24);
+            TextRenderer.DrawText(g, _title, titleFont, titleRect, theme.TextPrimary,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
+            currentY += 24;
         }
 
         if (!string.IsNullOrEmpty(_subtitle))
         {
-            using var subFont = UIHelper.GetFont(9f, FontStyle.Regular);
-            using var subBrush = new SolidBrush(theme.TextSecondary);
-            g.DrawString(_subtitle, subFont, subBrush, 16, currentY);
+            using var subFont = UIHelper.GetFont(8.8f, FontStyle.Regular);
+            var subRect = new Rectangle(16, currentY, textWidth, 18);
+            TextRenderer.DrawText(g, _subtitle, subFont, subRect, theme.TextSecondary,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
         }
     }
 }
