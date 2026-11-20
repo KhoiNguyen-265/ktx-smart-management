@@ -39,19 +39,21 @@ public class ContractsView : UserControl, IThemable
         DoubleBuffered = true;
         Padding = new Padding(0);
 
-        // Header Action Bar
-        var topBar = new Panel
+        // Header Action Bar (FlowLayoutPanel: zero overlap & zero truncated buttons!)
+        var topBar = new FlowLayoutPanel
         {
             Dock = DockStyle.Top,
-            Height = 60,
-            Padding = new Padding(0, 0, 0, 14)
+            Height = 56,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false,
+            Padding = new Padding(0, 6, 0, 8)
         };
 
         _txtSearch = new KTextBox
         {
-            Placeholder = "Tìm theo MSSV, Họ tên, Phòng hoặc CCCD...",
-            Location = new Point(0, 8),
-            Size = new Size(320, 40)
+            Placeholder = "Tìm MSSV, Họ tên, Phòng...",
+            Size = new Size(230, 38),
+            Margin = new Padding(0, 0, 10, 0)
         };
         _txtSearch.InnerTextBox.TextChanged += async (s, e) =>
         {
@@ -61,10 +63,10 @@ public class ContractsView : UserControl, IThemable
 
         _cboStatus = new ComboBox
         {
-            Location = new Point(335, 12),
-            Size = new Size(160, 36),
+            Size = new Size(165, 36),
+            Margin = new Padding(0, 4, 10, 0),
             DropDownStyle = ComboBoxStyle.DropDownList,
-            Font = new Font("Segoe UI", 10F)
+            Font = new Font("Segoe UI", 9.5F)
         };
         _cboStatus.Items.AddRange(new object[] { "Tất cả trạng thái", "Đang hiệu lực", "Sắp hết hạn (<30 ngày)", "Đã trả phòng" });
         _cboStatus.SelectedIndex = 0;
@@ -78,8 +80,8 @@ public class ContractsView : UserControl, IThemable
         {
             Text = "Chuyển phòng",
             Style = KButtonStyle.Secondary,
-            Location = new Point(510, 8),
-            Size = new Size(120, 40)
+            Size = new Size(134, 38),
+            Margin = new Padding(0, 0, 8, 0)
         };
         _btnTransfer.Click += async (s, e) => await HandleTransferRoomAsync();
 
@@ -87,8 +89,8 @@ public class ContractsView : UserControl, IThemable
         {
             Text = "Gia hạn",
             Style = KButtonStyle.Secondary,
-            Location = new Point(640, 8),
-            Size = new Size(90, 40)
+            Size = new Size(92, 38),
+            Margin = new Padding(0, 0, 8, 0)
         };
         _btnExtend.Click += async (s, e) => await HandleExtendAsync();
 
@@ -96,8 +98,8 @@ public class ContractsView : UserControl, IThemable
         {
             Text = "Trả phòng & Cọc",
             Style = KButtonStyle.Secondary,
-            Location = new Point(740, 8),
-            Size = new Size(130, 40)
+            Size = new Size(150, 38),
+            Margin = new Padding(0, 0, 8, 0)
         };
         _btnCheckOut.Click += async (s, e) => await HandleCheckOutAsync();
 
@@ -105,8 +107,8 @@ public class ContractsView : UserControl, IThemable
         {
             Text = "In Hợp đồng PDF",
             Style = KButtonStyle.Primary,
-            Location = new Point(880, 8),
-            Size = new Size(140, 40)
+            Size = new Size(156, 38),
+            Margin = new Padding(0)
         };
         _btnPrintPdf.Click += async (s, e) => await HandlePrintPdfAsync();
 
@@ -123,16 +125,16 @@ public class ContractsView : UserControl, IThemable
         };
         KDataGridHelper.ApplyModernStyle(_grid);
 
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Số HĐ", DataPropertyName = "Id", FillWeight = 60 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "MSSV", DataPropertyName = "MSSV", FillWeight = 85 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Họ và tên", DataPropertyName = "HoTen", FillWeight = 150 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Phòng", DataPropertyName = "MaPhong", FillWeight = 70 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Tòa", DataPropertyName = "ToaTen", FillWeight = 70 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Bắt đầu", DataPropertyName = "NgayBatDauText", FillWeight = 85 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Kết thúc", DataPropertyName = "NgayKetThucText", FillWeight = 85 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Giá/tháng", DataPropertyName = "GiaThucTeText", FillWeight = 95 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Tiền cọc", DataPropertyName = "TienCocText", FillWeight = 90 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Trạng thái", DataPropertyName = "TrangThaiText", FillWeight = 110 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Số HĐ", DataPropertyName = "Id", FillWeight = 62, MinimumWidth = 58 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "MSSV", DataPropertyName = "MSSV", FillWeight = 105, MinimumWidth = 96 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Họ và tên", DataPropertyName = "HoTen", FillWeight = 155, MinimumWidth = 135 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Phòng", DataPropertyName = "MaPhong", FillWeight = 65, MinimumWidth = 58 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Tòa", DataPropertyName = "ToaTen", FillWeight = 62, MinimumWidth = 55 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Bắt đầu", DataPropertyName = "NgayBatDauText", FillWeight = 92, MinimumWidth = 86 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Kết thúc", DataPropertyName = "NgayKetThucText", FillWeight = 92, MinimumWidth = 86 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Giá/tháng", DataPropertyName = "GiaThucTeText", FillWeight = 92, MinimumWidth = 86 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Tiền cọc", DataPropertyName = "TienCocText", FillWeight = 90, MinimumWidth = 84 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Trạng thái", DataPropertyName = "TrangThaiText", FillWeight = 128, MinimumWidth = 118 });
 
         _grid.CellFormatting += (s, e) =>
         {

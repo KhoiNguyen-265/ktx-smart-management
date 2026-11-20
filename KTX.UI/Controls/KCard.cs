@@ -79,21 +79,21 @@ public class KCard : Panel, IThemable
         }
 
         // Draw Title & Subtitle with crisp ClearType TextRenderer
-        int currentY = 14;
+        int currentY = 12;
         int textWidth = Math.Max(10, Width - 32);
         if (!string.IsNullOrEmpty(_title))
         {
             using var titleFont = UIHelper.GetFont(11.5f, FontStyle.Bold);
-            var titleRect = new Rectangle(16, currentY, textWidth, 24);
+            var titleRect = new Rectangle(16, currentY, textWidth, 28);
             TextRenderer.DrawText(g, _title, titleFont, titleRect, theme.TextPrimary,
                 TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix);
-            currentY += 24;
+            currentY += 27;
         }
 
         if (!string.IsNullOrEmpty(_subtitle))
         {
             using var subFont = UIHelper.GetFont(8.8f, FontStyle.Regular);
-            var subRect = new Rectangle(16, currentY, textWidth, 18);
+            var subRect = new Rectangle(16, currentY, textWidth, 20);
             TextRenderer.DrawText(g, _subtitle, subFont, subRect, theme.TextSecondary,
                 TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix);
         }

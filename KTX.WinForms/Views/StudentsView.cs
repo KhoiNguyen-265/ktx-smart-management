@@ -108,21 +108,22 @@ public class StudentsView : UserControl, IThemable
         _grid = new DataGridView
         {
             Dock = DockStyle.Fill,
-            ReadOnly = true
+            ReadOnly = true,
+            ScrollBars = ScrollBars.Both
         };
-        KDataGridHelper.ApplyModernStyle(_grid);
+        KDataGridHelper.ApplyModernStyle(_grid, autoFill: false);
 
-        // Define Columns
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "MSSV", DataPropertyName = "MSSV", FillWeight = 90 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Họ và tên", DataPropertyName = "HoTen", FillWeight = 160 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Giới tính", DataPropertyName = "GioiTinhText", FillWeight = 70 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Số CCCD", DataPropertyName = "CCCD", FillWeight = 110 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Khoa", DataPropertyName = "Khoa", FillWeight = 140 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Khóa", DataPropertyName = "KhoaHoc", FillWeight = 60 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Quê quán", DataPropertyName = "TenTinhThanh", FillWeight = 100 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Diện ưu tiên", DataPropertyName = "TenDienUuTien", FillWeight = 140 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Phòng ở", DataPropertyName = "PhongHienTai", FillWeight = 80 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Trạng thái", DataPropertyName = "TrangThaiLuuTru", FillWeight = 100 });
+        // Define Columns (Explicit widths so headers and MSSV never truncate)
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "MSSV", DataPropertyName = "MSSV", Width = 116 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Họ và tên", DataPropertyName = "HoTen", Width = 165 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "G.Tính", DataPropertyName = "GioiTinhText", Width = 68 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Số CCCD", DataPropertyName = "CCCD", Width = 122 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Khoa", DataPropertyName = "Khoa", Width = 170 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Khóa", DataPropertyName = "KhoaHoc", Width = 60 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Quê quán", DataPropertyName = "TenTinhThanh", Width = 120 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Diện ưu tiên", DataPropertyName = "TenDienUuTien", Width = 165 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Phòng", DataPropertyName = "PhongHienTai", Width = 72 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Trạng thái", DataPropertyName = "TrangThaiLuuTru", Width = 115 });
 
         // Bottom Pagination Bar
         var bottomBar = new FlowLayoutPanel
@@ -327,7 +328,7 @@ public class StudentsView : UserControl, IThemable
     public void ApplyTheme(Theme theme)
     {
         BackColor = theme.Surface;
-        KDataGridHelper.ApplyModernStyle(_grid);
+        KDataGridHelper.ApplyModernStyle(_grid, autoFill: false);
         _lblPageInfo.ForeColor = theme.TextPrimary;
     }
 }

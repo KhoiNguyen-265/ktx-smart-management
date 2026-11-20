@@ -68,12 +68,12 @@ public class ReportsView : UserControl, IThemable
         var pnlFin = new Panel { Dock = DockStyle.Fill };
 
         var lblMonth = new Label { Text = "Chọn Tháng:", Location = new Point(4, 24), AutoSize = true };
-        _cboMonth = new ComboBox { Location = new Point(92, 20), Width = 70, DropDownStyle = ComboBoxStyle.DropDownList };
+        _cboMonth = new ComboBox { Location = new Point(108, 20), Width = 70, DropDownStyle = ComboBoxStyle.DropDownList };
         for (int m = 1; m <= 12; m++) _cboMonth.Items.Add(m);
         _cboMonth.SelectedItem = DateTime.Now.Month;
 
-        var lblYear = new Label { Text = "Năm:", Location = new Point(178, 24), AutoSize = true };
-        _cboYear = new ComboBox { Location = new Point(220, 20), Width = 90, DropDownStyle = ComboBoxStyle.DropDownList };
+        var lblYear = new Label { Text = "Năm:", Location = new Point(196, 24), AutoSize = true };
+        _cboYear = new ComboBox { Location = new Point(244, 20), Width = 90, DropDownStyle = ComboBoxStyle.DropDownList };
         for (int y = 2024; y <= 2028; y++) _cboYear.Items.Add(y);
         _cboYear.SelectedItem = DateTime.Now.Year;
 
@@ -81,8 +81,8 @@ public class ReportsView : UserControl, IThemable
         {
             Text = "Xuất Báo Cáo Tài Chính PDF (.pdf)",
             Style = KButtonStyle.Primary,
-            Location = new Point(330, 14),
-            Size = new Size(275, 42)
+            Location = new Point(354, 14),
+            Size = new Size(310, 42)
         };
         _btnExportFinance.Click += async (s, e) => await ExportFinanceAsync();
 

@@ -79,8 +79,8 @@ public class UtilityMetersView : UserControl, IThemable
         {
             Text = "Nạp dữ liệu",
             Style = KButtonStyle.Secondary,
-            Location = new Point(480, 12),
-            Size = new Size(110, 36)
+            Location = new Point(485, 12),
+            Size = new Size(120, 36)
         };
         _btnLoad.Click += async (s, e) => await LoadReadingsAsync();
 
@@ -88,8 +88,8 @@ public class UtilityMetersView : UserControl, IThemable
         {
             Text = "Lưu tất cả chỉ số",
             Style = KButtonStyle.Primary,
-            Location = new Point(600, 12),
-            Size = new Size(160, 36)
+            Location = new Point(615, 12),
+            Size = new Size(170, 36)
         };
         _btnSave.Click += async (s, e) => await SaveAllReadingsAsync();
 
@@ -100,9 +100,9 @@ public class UtilityMetersView : UserControl, IThemable
             Dock = DockStyle.Fill,
             AllowUserToAddRows = false,
             SelectionMode = DataGridViewSelectionMode.CellSelect,
-            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+            ScrollBars = ScrollBars.Both
         };
-        KDataGridHelper.ApplyModernStyle(_grid);
+        KDataGridHelper.ApplyModernStyle(_grid, autoFill: false);
 
         SetupColumns();
 
@@ -128,27 +128,27 @@ public class UtilityMetersView : UserControl, IThemable
 
     private void SetupColumns()
     {
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Phòng", DataPropertyName = "MaPhong", ReadOnly = true, FillWeight = 65 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Tòa", DataPropertyName = "ToaTen", ReadOnly = true, FillWeight = 65 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Phòng", DataPropertyName = "MaPhong", ReadOnly = true, Width = 76, Frozen = true });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Tòa", DataPropertyName = "ToaTen", ReadOnly = true, Width = 72, Frozen = true });
 
         // Điện
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Điện cũ", DataPropertyName = "DienCu", FillWeight = 75 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Điện mới", DataPropertyName = "DienMoi", FillWeight = 75 });
-        _grid.Columns.Add(new DataGridViewCheckBoxColumn { HeaderText = "Thay ĐH Điện", DataPropertyName = "CoThayDongHoDien", FillWeight = 80 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Chốt cũ (Đ)", DataPropertyName = "DienChotDongHoCu", FillWeight = 75 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Đầu mới (Đ)", DataPropertyName = "DienDauDongHoMoi", FillWeight = 75 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Sản lượng điện", DataPropertyName = "SanLuongDien", ReadOnly = true, FillWeight = 85 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Điện cũ", DataPropertyName = "DienCu", Width = 88 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Điện mới", DataPropertyName = "DienMoi", Width = 94 });
+        _grid.Columns.Add(new DataGridViewCheckBoxColumn { HeaderText = "Thay ĐH (Đ)", DataPropertyName = "CoThayDongHoDien", Width = 112 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Chốt cũ (Đ)", DataPropertyName = "DienChotDongHoCu", Width = 106 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Đầu mới (Đ)", DataPropertyName = "DienDauDongHoMoi", Width = 112 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "SL Điện (kWh)", DataPropertyName = "SanLuongDien", ReadOnly = true, Width = 128 });
 
         // Nước
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Nước cũ", DataPropertyName = "NuocCu", FillWeight = 75 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Nước mới", DataPropertyName = "NuocMoi", FillWeight = 75 });
-        _grid.Columns.Add(new DataGridViewCheckBoxColumn { HeaderText = "Thay ĐH Nước", DataPropertyName = "CoThayDongHoNuoc", FillWeight = 80 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Chốt cũ (N)", DataPropertyName = "NuocChotDongHoCu", FillWeight = 75 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Đầu mới (N)", DataPropertyName = "NuocDauDongHoMoi", FillWeight = 75 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Sản lượng nước", DataPropertyName = "SanLuongNuoc", ReadOnly = true, FillWeight = 85 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Nước cũ", DataPropertyName = "NuocCu", Width = 92 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Nước mới", DataPropertyName = "NuocMoi", Width = 98 });
+        _grid.Columns.Add(new DataGridViewCheckBoxColumn { HeaderText = "Thay ĐH (N)", DataPropertyName = "CoThayDongHoNuoc", Width = 112 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Chốt cũ (N)", DataPropertyName = "NuocChotDongHoCu", Width = 106 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Đầu mới (N)", DataPropertyName = "NuocDauDongHoMoi", Width = 112 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "SL Nước (m³)", DataPropertyName = "SanLuongNuoc", ReadOnly = true, Width = 122 });
 
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Cảnh báo", DataPropertyName = "CanhBaoText", ReadOnly = true, FillWeight = 90 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Ghi chú", DataPropertyName = "GhiChu", FillWeight = 110 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Cảnh báo", DataPropertyName = "CanhBaoText", ReadOnly = true, Width = 125 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Ghi chú", DataPropertyName = "GhiChu", Width = 220 });
 
         _grid.CellFormatting += (s, e) =>
         {
@@ -269,6 +269,6 @@ public class UtilityMetersView : UserControl, IThemable
     public void ApplyTheme(Theme theme)
     {
         BackColor = theme.Surface;
-        KDataGridHelper.ApplyModernStyle(_grid);
+        KDataGridHelper.ApplyModernStyle(_grid, autoFill: false);
     }
 }

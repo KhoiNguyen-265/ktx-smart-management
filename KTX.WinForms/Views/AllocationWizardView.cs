@@ -202,8 +202,8 @@ public class AllocationWizardView : UserControl, IThemable
         {
             Text = "Nhập đơn từ Excel",
             Style = KButtonStyle.Secondary,
-            Location = new Point(500, 56),
-            Size = new Size(155, 34)
+            Location = new Point(496, 56),
+            Size = new Size(175, 36)
         };
         _btnImportApps.Click += async (s, e) => await ImportApplicationsAsync();
 
@@ -211,8 +211,8 @@ public class AllocationWizardView : UserControl, IThemable
         {
             Text = "Tải mẫu Excel",
             Style = KButtonStyle.Secondary,
-            Location = new Point(665, 56),
-            Size = new Size(130, 34)
+            Location = new Point(682, 56),
+            Size = new Size(140, 36)
         };
         _btnDownloadTemplate.Click += async (s, e) => await DownloadAppTemplateAsync();
 
@@ -220,8 +220,8 @@ public class AllocationWizardView : UserControl, IThemable
         {
             Text = "Đang tải thông tin đợt đăng ký...",
             Location = new Point(20, 114),
-            Size = new Size(780, 220),
-            Font = new Font("Segoe UI", 10.5F)
+            Size = new Size(860, 290),
+            Font = new Font("Segoe UI", 10F)
         };
 
         card.Controls.AddRange(new Control[] { lblSelect, _cboBatches, _btnImportApps, _btnDownloadTemplate, _lblBatchStats });

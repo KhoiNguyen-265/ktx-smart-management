@@ -55,20 +55,27 @@ public class InvoicesView : UserControl, IThemable
             await LoadDataAsync();
         };
 
-        // Top Bar
-        var topBar = new Panel { Dock = DockStyle.Top, Height = 65, Padding = new Padding(0, 10, 0, 10) };
+        // Top Bar (FlowLayoutPanel: zero overlap & zero truncated buttons!)
+        var topBar = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            Height = 56,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false,
+            Padding = new Padding(0, 8, 0, 8)
+        };
 
-        _cboMonth = new ComboBox { Location = new Point(0, 14), Width = 70, DropDownStyle = ComboBoxStyle.DropDownList };
+        _cboMonth = new ComboBox { Width = 64, DropDownStyle = ComboBoxStyle.DropDownList, Margin = new Padding(0, 4, 8, 0), Font = new Font("Segoe UI", 9.5F) };
         for (int m = 1; m <= 12; m++) _cboMonth.Items.Add(m);
         _cboMonth.SelectedItem = DateTime.Now.Month;
         _cboMonth.SelectedIndexChanged += async (s, e) => { if (_isInitialized) await LoadDataAsync(); };
 
-        _cboYear = new ComboBox { Location = new Point(80, 14), Width = 85, DropDownStyle = ComboBoxStyle.DropDownList };
+        _cboYear = new ComboBox { Width = 78, DropDownStyle = ComboBoxStyle.DropDownList, Margin = new Padding(0, 4, 10, 0), Font = new Font("Segoe UI", 9.5F) };
         for (int y = 2024; y <= 2028; y++) _cboYear.Items.Add(y);
         _cboYear.SelectedItem = DateTime.Now.Year;
         _cboYear.SelectedIndexChanged += async (s, e) => { if (_isInitialized) await LoadDataAsync(); };
 
-        _txtSearch = new KTextBox { Placeholder = "Tìm mã KTXDN, KTXTP, MSSV, Phòng...", Location = new Point(175, 10), Width = 280 };
+        _txtSearch = new KTextBox { Placeholder = "Tìm KTXDN, KTXTP, MSSV, Phòng...", Size = new Size(250, 38), Margin = new Padding(0, 0, 10, 0) };
         _txtSearch.InnerTextBox.TextChanged += (s, e) =>
         {
             if (!_isInitialized) return;
@@ -80,17 +87,17 @@ public class InvoicesView : UserControl, IThemable
         {
             Text = "Lập HĐ Điện Nước",
             Style = KButtonStyle.Primary,
-            Location = new Point(470, 10),
-            Size = new Size(160, 36)
+            Size = new Size(165, 38),
+            Margin = new Padding(0, 0, 8, 0)
         };
         _btnGenInvoices.Click += async (s, e) => await GenerateInvoicesAsync();
 
         _btnGenRoomFees = new KButton
         {
-            Text = "Lập Tiền Phòng Học Kỳ",
+            Text = "Lập Tiền Phòng",
             Style = KButtonStyle.Secondary,
-            Location = new Point(640, 10),
-            Size = new Size(170, 36)
+            Size = new Size(145, 38),
+            Margin = new Padding(0, 0, 8, 0)
         };
         _btnGenRoomFees.Click += async (s, e) => await GenerateRoomFeesAsync();
 
@@ -98,8 +105,8 @@ public class InvoicesView : UserControl, IThemable
         {
             Text = "Thu Tiền Mặt",
             Style = KButtonStyle.Secondary,
-            Location = new Point(820, 10),
-            Size = new Size(120, 36)
+            Size = new Size(130, 38),
+            Margin = new Padding(0)
         };
         _btnCashPay.Click += async (s, e) => await HandleCashPaymentAsync();
 
@@ -109,52 +116,52 @@ public class InvoicesView : UserControl, IThemable
         _panelQr = new Panel
         {
             Dock = DockStyle.Right,
-            Width = 320,
-            Padding = new Padding(16),
+            Width = 310,
+            Padding = new Padding(12),
             BackColor = ThemeManager.Current.Surface
         };
 
         _lblQrTitle = new Label
         {
-            Text = "THANH TOÁN VIETQR CHUẨN EMVCO",
-            Font = new Font("Segoe UI", 10.5F, FontStyle.Bold),
+            Text = "VIETQR CHUẨN EMVCO",
+            Font = new Font("Segoe UI", 10F, FontStyle.Bold),
             ForeColor = ThemeManager.Current.Primary,
             Dock = DockStyle.Top,
-            Height = 30,
+            Height = 28,
             TextAlign = ContentAlignment.MiddleCenter
         };
 
         _picQr = new PictureBox
         {
-            Size = new Size(240, 240),
+            Size = new Size(210, 210),
             SizeMode = PictureBoxSizeMode.Zoom,
-            Location = new Point(40, 45)
+            Location = new Point(50, 40)
         };
 
         _lblQrDetails = new Label
         {
             Text = "Chọn một hóa đơn trong danh sách để hiển thị mã VietQR động.",
-            Font = new Font("Segoe UI", 9.5F),
+            Font = new Font("Segoe UI", 9F),
             ForeColor = ThemeManager.Current.TextSecondary,
-            Location = new Point(16, 300),
-            Size = new Size(288, 200),
+            Location = new Point(12, 260),
+            Size = new Size(286, 270),
             TextAlign = ContentAlignment.TopCenter
         };
 
         _panelQr.Controls.AddRange(new Control[] { _lblQrTitle, _picQr, _lblQrDetails });
 
         // Main TabControl
-        _tabMain = new TabControl { Dock = DockStyle.Fill, Font = new Font("Segoe UI", 10F) };
+        _tabMain = new TabControl { Dock = DockStyle.Fill, Font = new Font("Segoe UI", 9.5F) };
         _tabUtility = new TabPage("Hóa đơn điện nước (theo phòng)");
         _tabRoomFee = new TabPage("Khoản thu tiền phòng (theo hợp đồng)");
 
-        _gridUtility = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AllowUserToAddRows = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill };
-        KDataGridHelper.ApplyModernStyle(_gridUtility);
+        _gridUtility = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AllowUserToAddRows = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect, ScrollBars = ScrollBars.Both };
+        KDataGridHelper.ApplyModernStyle(_gridUtility, autoFill: false);
         SetupUtilityColumns();
         _gridUtility.SelectionChanged += (s, e) => OnUtilityInvoiceSelected();
 
-        _gridRoomFee = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AllowUserToAddRows = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill };
-        KDataGridHelper.ApplyModernStyle(_gridRoomFee);
+        _gridRoomFee = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AllowUserToAddRows = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect, ScrollBars = ScrollBars.Both };
+        KDataGridHelper.ApplyModernStyle(_gridRoomFee, autoFill: false);
         SetupRoomFeeColumns();
         _gridRoomFee.SelectionChanged += (s, e) => OnRoomFeeSelected();
 
@@ -187,28 +194,28 @@ public class InvoicesView : UserControl, IThemable
 
     private void SetupUtilityColumns()
     {
-        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Mã hóa đơn", DataPropertyName = "MaThanhToan", FillWeight = 95 });
-        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Phòng", DataPropertyName = "MaPhong", FillWeight = 70 });
-        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Tòa", DataPropertyName = "ToaTen", FillWeight = 70 });
-        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Tháng", DataPropertyName = "KyHoaDon", FillWeight = 70 });
-        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Định mức", DataPropertyName = "DinhMucText", FillWeight = 80 });
-        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Tổng tiền", DataPropertyName = "TongTienText", FillWeight = 90 });
-        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Đã thu", DataPropertyName = "DaThuText", FillWeight = 90 });
-        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Còn nợ", DataPropertyName = "ConNoText", FillWeight = 90 });
-        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Trạng thái", DataPropertyName = "TrangThaiText", FillWeight = 110 });
+        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Mã hóa đơn", DataPropertyName = "MaThanhToan", Width = 148 });
+        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Phòng", DataPropertyName = "MaPhong", Width = 78 });
+        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Tòa", DataPropertyName = "ToaTen", Width = 68 });
+        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Kỳ HĐ", DataPropertyName = "KyHoaDon", Width = 78 });
+        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Định mức", DataPropertyName = "DinhMucText", Width = 96 });
+        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Tổng tiền", DataPropertyName = "TongTienText", Width = 108 });
+        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Đã thu", DataPropertyName = "DaThuText", Width = 104 });
+        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Còn nợ", DataPropertyName = "ConNoText", Width = 104 });
+        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Trạng thái", DataPropertyName = "TrangThaiText", Width = 140 });
     }
 
     private void SetupRoomFeeColumns()
     {
-        _gridRoomFee.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Mã khoản thu", DataPropertyName = "MaThanhToan", FillWeight = 95 });
-        _gridRoomFee.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "MSSV", DataPropertyName = "MSSV", FillWeight = 85 });
-        _gridRoomFee.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Họ và tên", DataPropertyName = "HoTen", FillWeight = 140 });
-        _gridRoomFee.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Phòng", DataPropertyName = "MaPhong", FillWeight = 70 });
-        _gridRoomFee.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Thời hạn", DataPropertyName = "ThoiHanText", FillWeight = 120 });
-        _gridRoomFee.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Phải thu", DataPropertyName = "PhaiThuText", FillWeight = 90 });
-        _gridRoomFee.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Đã thu", DataPropertyName = "DaThuText", FillWeight = 90 });
-        _gridRoomFee.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Còn nợ", DataPropertyName = "ConNoText", FillWeight = 90 });
-        _gridRoomFee.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Trạng thái", DataPropertyName = "TrangThaiText", FillWeight = 110 });
+        _gridRoomFee.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Mã khoản thu", DataPropertyName = "MaThanhToan", Width = 148 });
+        _gridRoomFee.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "MSSV", DataPropertyName = "MSSV", Width = 110 });
+        _gridRoomFee.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Họ và tên", DataPropertyName = "HoTen", Width = 160 });
+        _gridRoomFee.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Phòng", DataPropertyName = "MaPhong", Width = 78 });
+        _gridRoomFee.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Thời hạn", DataPropertyName = "ThoiHanText", Width = 148 });
+        _gridRoomFee.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Phải thu", DataPropertyName = "PhaiThuText", Width = 100 });
+        _gridRoomFee.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Đã thu", DataPropertyName = "DaThuText", Width = 100 });
+        _gridRoomFee.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Còn nợ", DataPropertyName = "ConNoText", Width = 100 });
+        _gridRoomFee.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Trạng thái", DataPropertyName = "TrangThaiText", Width = 140 });
     }
 
     private async Task InitializeAsync()
@@ -425,7 +432,7 @@ public class InvoicesView : UserControl, IThemable
         BackColor = theme.Surface;
         _panelQr.BackColor = theme.SurfaceCard;
         _lblQrTitle.ForeColor = theme.Primary;
-        KDataGridHelper.ApplyModernStyle(_gridUtility);
-        KDataGridHelper.ApplyModernStyle(_gridRoomFee);
+        KDataGridHelper.ApplyModernStyle(_gridUtility, autoFill: false);
+        KDataGridHelper.ApplyModernStyle(_gridRoomFee, autoFill: false);
     }
 }

@@ -31,10 +31,10 @@ public class StudentMaintenanceView : UserControl, IThemable
 
         _btnReport = new KButton
         {
-            Text = "+ Gửi yêu cầu báo hỏng thiết bị phòng",
+            Text = "+ Gửi yêu cầu báo hỏng",
             Style = KButtonStyle.Primary,
             Location = new Point(0, 8),
-            Size = new Size(270, 38)
+            Size = new Size(215, 38)
         };
         _btnReport.Click += async (s, e) => await HandleReportIssueAsync();
 
@@ -42,8 +42,8 @@ public class StudentMaintenanceView : UserControl, IThemable
         {
             Text = "Làm mới",
             Style = KButtonStyle.Secondary,
-            Location = new Point(282, 8),
-            Size = new Size(100, 38)
+            Location = new Point(227, 8),
+            Size = new Size(105, 38)
         };
         _btnRefresh.Click += async (s, e) => await LoadDataAsync();
 
@@ -63,7 +63,7 @@ public class StudentMaintenanceView : UserControl, IThemable
         _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Mô tả sự cố / Thiết bị hỏng", DataPropertyName = "MoTa", FillWeight = 230 });
         _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Trạng thái", DataPropertyName = "TrangThaiText", FillWeight = 110 });
         _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Ngày báo", DataPropertyName = "NgayTaoText", FillWeight = 115 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Ngày hoàn thành", DataPropertyName = "NgayXongText", FillWeight = 115 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Hoàn thành", DataPropertyName = "NgayXongText", FillWeight = 115 });
         _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Phản hồi kỹ thuật", DataPropertyName = "GhiChu", FillWeight = 180 });
 
         Controls.Add(_grid);

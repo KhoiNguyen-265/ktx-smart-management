@@ -104,24 +104,24 @@ public class StudentBillsView : UserControl, IThemable
         var tabFees = new TabPage("Tiền phòng của tôi");
         var tabUtil = new TabPage("Hóa đơn Điện Nước phòng");
 
-        _gridRoomFees = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AllowUserToAddRows = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect };
-        KDataGridHelper.ApplyModernStyle(_gridRoomFees);
-        _gridRoomFees.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Mã thanh toán", DataPropertyName = "MaThanhToan", FillWeight = 110 });
-        _gridRoomFees.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Kỳ hạn", DataPropertyName = "KyHan", FillWeight = 115 });
-        _gridRoomFees.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Phải thu", DataPropertyName = "PhaiThuText", FillWeight = 90 });
-        _gridRoomFees.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Đã đóng", DataPropertyName = "DaThuText", FillWeight = 90 });
-        _gridRoomFees.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Còn nợ", DataPropertyName = "ConNoText", FillWeight = 90 });
-        _gridRoomFees.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Trạng thái", DataPropertyName = "TrangThaiText", FillWeight = 110 });
+        _gridRoomFees = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AllowUserToAddRows = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect, ScrollBars = ScrollBars.Both };
+        KDataGridHelper.ApplyModernStyle(_gridRoomFees, autoFill: false);
+        _gridRoomFees.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Mã thanh toán", DataPropertyName = "MaThanhToan", Width = 148 });
+        _gridRoomFees.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Kỳ hạn", DataPropertyName = "KyHan", Width = 165 });
+        _gridRoomFees.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Phải thu", DataPropertyName = "PhaiThuText", Width = 96 });
+        _gridRoomFees.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Đã đóng", DataPropertyName = "DaThuText", Width = 96 });
+        _gridRoomFees.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Còn nợ", DataPropertyName = "ConNoText", Width = 96 });
+        _gridRoomFees.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Trạng thái", DataPropertyName = "TrangThaiText", Width = 142 });
         _gridRoomFees.SelectionChanged += (s, e) => OnRoomFeeSelected();
 
-        _gridUtility = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AllowUserToAddRows = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect };
-        KDataGridHelper.ApplyModernStyle(_gridUtility);
-        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Mã hóa đơn", DataPropertyName = "MaThanhToan", FillWeight = 110 });
-        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Kỳ hóa đơn", DataPropertyName = "KyHoaDon", FillWeight = 80 });
-        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Tổng phòng", DataPropertyName = "TongTienText", FillWeight = 95 });
-        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Đã đóng", DataPropertyName = "DaThuText", FillWeight = 95 });
-        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Còn nợ", DataPropertyName = "ConNoText", FillWeight = 95 });
-        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Trạng thái", DataPropertyName = "TrangThaiText", FillWeight = 110 });
+        _gridUtility = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AllowUserToAddRows = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect, ScrollBars = ScrollBars.Both };
+        KDataGridHelper.ApplyModernStyle(_gridUtility, autoFill: false);
+        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Mã hóa đơn", DataPropertyName = "MaThanhToan", Width = 148 });
+        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Kỳ hóa đơn", DataPropertyName = "KyHoaDon", Width = 115 });
+        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Tổng phòng", DataPropertyName = "TongTienText", Width = 108 });
+        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Đã đóng", DataPropertyName = "DaThuText", Width = 104 });
+        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Còn nợ", DataPropertyName = "ConNoText", Width = 104 });
+        _gridUtility.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Trạng thái", DataPropertyName = "TrangThaiText", Width = 142 });
         _gridUtility.SelectionChanged += (s, e) => OnUtilitySelected();
 
         tabFees.Controls.Add(_gridRoomFees);
@@ -254,7 +254,7 @@ public class StudentBillsView : UserControl, IThemable
         _panelQr.BackColor = theme.Surface;
         _lblQrTitle.ForeColor = theme.Primary;
         _lblQrDetails.ForeColor = theme.TextPrimary;
-        KDataGridHelper.ApplyModernStyle(_gridRoomFees);
-        KDataGridHelper.ApplyModernStyle(_gridUtility);
+        KDataGridHelper.ApplyModernStyle(_gridRoomFees, autoFill: false);
+        KDataGridHelper.ApplyModernStyle(_gridUtility, autoFill: false);
     }
 }

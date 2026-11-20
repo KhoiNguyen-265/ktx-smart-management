@@ -233,7 +233,7 @@ public class DashboardView : UserControl, IThemable
 
             int alertTotal = stats.ExpiringContracts30Days + stats.PendingMaintenance + stats.UnpaidInvoices;
             _cardAlerts.Value = $"{alertTotal} mục";
-            _cardAlerts.TrendText = $"● {stats.ExpiringContracts30Days} HĐ sắp hết · {stats.PendingMaintenance} sự cố · {stats.UnpaidInvoices} HĐ nợ";
+            _cardAlerts.TrendText = $"● {stats.ExpiringContracts30Days} sắp hết · {stats.PendingMaintenance} sự cố · {stats.UnpaidInvoices} nợ";
             _cardAlerts.IsPositiveTrend = alertTotal == 0;
 
             // 2. Chart 1: Building Occupancy
@@ -303,7 +303,7 @@ public class DashboardView : UserControl, IThemable
         plot.ShowLegend(ScottPlot.Alignment.UpperRight);
         plot.Axes.Left.Label.Text = "Số giường";
         plot.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.NumericManual(tickList.ToArray());
-        plot.Axes.Margins(bottom: 0, top: 0.22);
+        plot.Axes.Margins(bottom: 0, top: 0.48);
         plot.Axes.AutoScale();
         _plotOccupancy.Refresh();
     }

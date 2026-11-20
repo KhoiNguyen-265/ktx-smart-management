@@ -207,11 +207,11 @@ public class MainForm : Form, IThemable
 
         string pageTitle = key switch
         {
-            "StudentHome" => "Cổng Sinh viên / Phòng & Hợp đồng",
-            "StudentBills" => "Cổng Sinh viên / Hóa đơn & VietQR",
-            "StudentMaintenance" => "Cổng Sinh viên / Báo hỏng phòng",
-            "Dashboard" => "Tổng quan",
-            "Rooms" => "Tòa & Phòng",
+            "StudentHome" => "Phòng & Hợp đồng",
+            "StudentBills" => "Hóa đơn & VietQR",
+            "StudentMaintenance" => "Báo hỏng phòng",
+            "Dashboard" => "Tổng quan hệ thống",
+            "Rooms" => "Tòa & Sơ đồ Phòng",
             "Students" => "Quản lý Sinh viên",
             "Allocation" => "Xếp phòng tự động AI",
             "Contracts" => "Hợp đồng lưu trú",
@@ -223,7 +223,7 @@ public class MainForm : Form, IThemable
             "Settings" => "Cấu hình Hệ thống",
             _ => key
         };
-        _lblBreadcrumb.Text = key.StartsWith("Student") ? pageTitle : $"Trang chủ / {pageTitle}";
+        _lblBreadcrumb.Text = pageTitle;
 
         if (key == "StudentHome")
         {

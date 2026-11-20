@@ -19,7 +19,15 @@ public class KTextBox : UserControl, IThemable
     public string Placeholder
     {
         get => _placeholder;
-        set { _placeholder = value; Invalidate(); }
+        set
+        {
+            _placeholder = value ?? string.Empty;
+            if (_innerBox != null)
+            {
+                _innerBox.PlaceholderText = _placeholder;
+            }
+            Invalidate();
+        }
     }
 
     [Category("K Appearance")]
@@ -141,15 +149,6 @@ public class KTextBox : UserControl, IThemable
         {
             int iconY = (Height - _icon.Height) / 2;
             g.DrawImage(_icon, 10, iconY, _icon.Width, _icon.Height);
-        }
-
-        // Draw placeholder if text is empty
-        if (string.IsNullOrEmpty(_innerBox.Text) && !string.IsNullOrEmpty(_placeholder) && !_isFocused)
-        {
-            int textX = _icon != null ? 36 : 12;
-            int textY = (Height - _innerBox.Height) / 2;
-            using var placeholderBrush = new SolidBrush(theme.TextMuted);
-            g.DrawString(_placeholder, _innerBox.Font, placeholderBrush, textX, textY);
         }
     }
 }

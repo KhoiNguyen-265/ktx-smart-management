@@ -60,8 +60,8 @@ public class KButton : Button, IThemable
         BackColor = Color.Transparent;
         TabStop = false;
         Cursor = Cursors.Hand;
-        Font = UIHelper.GetFont(10f, FontStyle.Bold);
-        Size = new Size(120, 40);
+        Font = UIHelper.GetFont(9.2f, FontStyle.Bold);
+        Size = new Size(120, 38);
     }
 
     protected override void OnPaintBackground(PaintEventArgs pevent)

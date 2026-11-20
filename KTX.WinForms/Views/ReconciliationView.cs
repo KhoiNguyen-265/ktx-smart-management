@@ -198,20 +198,20 @@ public class ReconciliationView : UserControl, IThemable
             AllowUserToAddRows = false,
             SelectionMode = DataGridViewSelectionMode.FullRowSelect,
             ReadOnly = true,
-            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+            ScrollBars = ScrollBars.Both
         };
-        KDataGridHelper.ApplyModernStyle(grid);
+        KDataGridHelper.ApplyModernStyle(grid, autoFill: false);
 
-        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "ID", DataPropertyName = "Id", Width = 55 });
-        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Ngày GD", DataPropertyName = "NgayGD", Width = 130 });
-        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Số tiền (VNĐ)", DataPropertyName = "SoTien", Width = 115 });
-        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Mã GD Ngân hàng", DataPropertyName = "MaGiaoDich", Width = 140 });
-        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Nội dung chuyển khoản", DataPropertyName = "NoiDungGoc", Width = 230 });
-        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Số dư sau", DataPropertyName = "SoDuSau", Width = 110 });
-        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Trạng thái", DataPropertyName = "TrangThaiText", Width = 110 });
-        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Mã HĐ nhận diện", DataPropertyName = "MaHoaDonNhanDien", Width = 135 });
-        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Chi tiết đối soát", DataPropertyName = "ChiTietKhop", Width = 200 });
-        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Hash SHA256", DataPropertyName = "HashSaoKe", Width = 160 });
+        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "ID", DataPropertyName = "Id", Width = 52 });
+        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Ngày giao dịch", DataPropertyName = "NgayGD", Width = 142 });
+        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Số tiền (VNĐ)", DataPropertyName = "SoTien", Width = 124 });
+        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Mã GD Ngân hàng", DataPropertyName = "MaGiaoDich", Width = 156 });
+        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Nội dung chuyển khoản", DataPropertyName = "NoiDungGoc", Width = 310 });
+        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Số dư sau", DataPropertyName = "SoDuSau", Width = 125 });
+        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Trạng thái", DataPropertyName = "TrangThaiText", Width = 115 });
+        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Mã HĐ nhận diện", DataPropertyName = "MaHoaDonNhanDien", Width = 140 });
+        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Chi tiết đối soát", DataPropertyName = "ChiTietKhop", Width = 180 });
+        grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Hash SHA256", DataPropertyName = "HashSaoKe", Width = 165 });
 
         return grid;
     }
@@ -352,8 +352,8 @@ public class ReconciliationView : UserControl, IThemable
 
         _lblStatTotal.ForeColor = theme.TextPrimary;
 
-        KDataGridHelper.ApplyModernStyle(_gridMatched);
-        KDataGridHelper.ApplyModernStyle(_gridPartial);
-        KDataGridHelper.ApplyModernStyle(_gridUnmatched);
+        KDataGridHelper.ApplyModernStyle(_gridMatched, autoFill: false);
+        KDataGridHelper.ApplyModernStyle(_gridPartial, autoFill: false);
+        KDataGridHelper.ApplyModernStyle(_gridUnmatched, autoFill: false);
     }
 }

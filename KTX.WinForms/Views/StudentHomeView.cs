@@ -147,11 +147,11 @@ public class StudentHomeView : UserControl, IThemable
             AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
         };
         KDataGridHelper.ApplyModernStyle(_gridRoommates);
-        _gridRoommates.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "MSSV", DataPropertyName = "MSSV", FillWeight = 95 });
-        _gridRoommates.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Họ và tên", DataPropertyName = "HoTen", FillWeight = 165 });
+        _gridRoommates.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "MSSV", DataPropertyName = "MSSV", FillWeight = 112 });
+        _gridRoommates.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Họ và tên", DataPropertyName = "HoTen", FillWeight = 155 });
         _gridRoommates.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Khoa", DataPropertyName = "Khoa", FillWeight = 135 });
         _gridRoommates.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Khóa", DataPropertyName = "KhoaHocText", FillWeight = 55 });
-        _gridRoommates.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Số điện thoại", DataPropertyName = "SoDienThoai", FillWeight = 100 });
+        _gridRoommates.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "SĐT", DataPropertyName = "SoDienThoai", FillWeight = 105 });
 
         _lblAssets = new Label
         {
@@ -201,7 +201,7 @@ public class StudentHomeView : UserControl, IThemable
 
             _cardRoom.Value = _overview.MaPhong;
             _cardRoom.TrendText = _overview.PhongId.HasValue
-                ? $"● {_overview.TenToa} · Tầng {_overview.Tang} · {_overview.TenLoaiPhong}"
+                ? $"● {_overview.TenToa} · Tầng {_overview.Tang} · {_overview.Roommates.Count} SV cùng phòng"
                 : "● Chưa được phân phòng";
             _cardRoom.IsPositiveTrend = _overview.PhongId.HasValue;
 

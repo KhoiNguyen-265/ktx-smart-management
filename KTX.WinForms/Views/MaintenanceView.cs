@@ -37,20 +37,23 @@ public class MaintenanceView : UserControl, IThemable
         Dock = DockStyle.Fill;
         DoubleBuffered = true;
 
-        // Top Bar
-        var topBar = new Panel
+        // Top Bar (FlowLayoutPanel: zero overlap & zero truncated buttons!)
+        var topBar = new FlowLayoutPanel
         {
             Dock = DockStyle.Top,
-            Height = 60,
-            Padding = new Padding(0, 10, 0, 10)
+            Height = 56,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false,
+            Padding = new Padding(0, 8, 0, 8)
         };
 
-        var lblFilter = new Label { Text = "Trạng thái:", Location = new Point(0, 16), AutoSize = true };
+        var lblFilter = new Label { Text = "Trạng thái:", AutoSize = true, Font = UIHelper.GetFont(9.5f, FontStyle.Bold), Margin = new Padding(0, 9, 8, 0) };
         _cboStatusFilter = new ComboBox
         {
-            Location = new Point(70, 12),
-            Width = 140,
-            DropDownStyle = ComboBoxStyle.DropDownList
+            Width = 145,
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Font = UIHelper.GetFont(9.5f),
+            Margin = new Padding(0, 4, 14, 0)
         };
         _cboStatusFilter.Items.AddRange(new object[] { "Tất cả", "Chưa xử lý", "Đang xử lý", "Đã hoàn thành" });
         _cboStatusFilter.SelectedIndex = 0;
@@ -60,8 +63,8 @@ public class MaintenanceView : UserControl, IThemable
         {
             Text = "Báo hỏng / Tạo yêu cầu",
             Style = KButtonStyle.Primary,
-            Location = new Point(230, 10),
-            Size = new Size(190, 38)
+            Size = new Size(215, 38),
+            Margin = new Padding(0, 0, 10, 0)
         };
         _btnCreate.Click += async (s, e) => await HandleCreateAsync();
 
@@ -69,8 +72,8 @@ public class MaintenanceView : UserControl, IThemable
         {
             Text = "Cập nhật tiến độ & Chi phí",
             Style = KButtonStyle.Secondary,
-            Location = new Point(430, 10),
-            Size = new Size(210, 38)
+            Size = new Size(235, 38),
+            Margin = new Padding(0, 0, 10, 0)
         };
         _btnUpdateStatus.Click += async (s, e) => await HandleUpdateStatusAsync();
 
@@ -78,8 +81,8 @@ public class MaintenanceView : UserControl, IThemable
         {
             Text = "Nạp lại",
             Style = KButtonStyle.Secondary,
-            Location = new Point(650, 10),
-            Size = new Size(90, 38)
+            Size = new Size(92, 38),
+            Margin = new Padding(0)
         };
         _btnRefresh.Click += async (s, e) => await LoadDataAsync();
 
@@ -114,15 +117,15 @@ public class MaintenanceView : UserControl, IThemable
         };
         KDataGridHelper.ApplyModernStyle(_grid);
 
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "ID", DataPropertyName = "Id", Width = 50 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Tòa", DataPropertyName = "ToaTen", Width = 110 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Phòng", DataPropertyName = "MaPhong", Width = 90 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Mô tả sự cố / Hỏng hóc", DataPropertyName = "MoTa", Width = 280 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Trạng thái", DataPropertyName = "TrangThaiText", Width = 130 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Ngày báo", DataPropertyName = "NgayTaoText", Width = 120 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Ngày xong", DataPropertyName = "NgayHoanThanhText", Width = 120 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Chi phí vật tư", DataPropertyName = "ChiPhiText", Width = 120 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Ghi chú xử lý", DataPropertyName = "GhiChu", Width = 180 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "ID", DataPropertyName = "Id", FillWeight = 42, MinimumWidth = 40 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Tòa", DataPropertyName = "ToaTen", FillWeight = 62, MinimumWidth = 56 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Phòng", DataPropertyName = "MaPhong", FillWeight = 64, MinimumWidth = 58 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Mô tả sự cố / Hỏng hóc", DataPropertyName = "MoTa", FillWeight = 230, MinimumWidth = 190 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Trạng thái", DataPropertyName = "TrangThaiText", FillWeight = 105, MinimumWidth = 96 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Ngày báo", DataPropertyName = "NgayTaoText", FillWeight = 115, MinimumWidth = 105 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Ngày xong", DataPropertyName = "NgayHoanThanhText", FillWeight = 110, MinimumWidth = 96 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Chi phí", DataPropertyName = "ChiPhiText", FillWeight = 88, MinimumWidth = 80 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Ghi chú xử lý", DataPropertyName = "GhiChu", FillWeight = 165, MinimumWidth = 135 });
 
         Controls.Add(_grid);
         Controls.Add(_panelStats);

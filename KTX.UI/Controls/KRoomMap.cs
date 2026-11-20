@@ -37,7 +37,7 @@ public class KRoomMap : Control, IThemable
     private void UpdateDynamicHeight()
     {
         if (Dock == DockStyle.Fill) return;
-        int cardWidth = 175;
+        int cardWidth = 196;
         int cardHeight = 110;
         int gap = 16;
         int padding = 16;
@@ -73,7 +73,7 @@ public class KRoomMap : Control, IThemable
 
     private Rectangle GetCardRect(int index)
     {
-        int cardWidth = 175;
+        int cardWidth = 196;
         int cardHeight = 110;
         int gap = 16;
         int padding = 16;

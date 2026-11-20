@@ -29,26 +29,28 @@ public class RoomsView : UserControl, IThemable
         Dock = DockStyle.Fill;
         DoubleBuffered = true;
 
-        // Top Filter Bar
-        var topBar = new Panel
+        // Top Filter Bar (FlowLayoutPanel ensures zero overlap at any DPI!)
+        var topBar = new FlowLayoutPanel
         {
             Dock = DockStyle.Top,
-            Height = 60,
-            Padding = new Padding(0, 0, 0, 12)
+            Height = 56,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false,
+            Padding = new Padding(0, 8, 0, 8)
         };
 
         var lblBuilding = new Label
         {
             Text = "Chọn Tòa nhà:",
-            Font = UIHelper.GetFont(10f, FontStyle.Bold),
-            Location = new Point(0, 16),
-            AutoSize = true
+            Font = UIHelper.GetFont(9.5f, FontStyle.Bold),
+            AutoSize = true,
+            Margin = new Padding(0, 9, 8, 0)
         };
 
         _cboBuilding = new KComboBox
         {
-            Location = new Point(128, 10),
-            Size = new Size(175, 36)
+            Size = new Size(165, 36),
+            Margin = new Padding(0, 0, 20, 0)
         };
         _cboBuilding.SelectedIndexChanged += async (s, e) =>
         {
@@ -62,17 +64,18 @@ public class RoomsView : UserControl, IThemable
         var lblFloor = new Label
         {
             Text = "Tầng:",
-            Font = UIHelper.GetFont(10f, FontStyle.Bold),
-            Location = new Point(322, 16),
-            AutoSize = true
+            Font = UIHelper.GetFont(9.5f, FontStyle.Bold),
+            AutoSize = true,
+            Margin = new Padding(0, 9, 8, 0)
         };
 
         _panelFloors = new FlowLayoutPanel
         {
-            Location = new Point(372, 8),
-            Size = new Size(440, 42),
+            AutoSize = true,
+            Height = 40,
             FlowDirection = FlowDirection.LeftToRight,
-            WrapContents = false
+            WrapContents = false,
+            Margin = new Padding(0)
         };
 
         for (int f = 1; f <= 5; f++)
@@ -81,10 +84,10 @@ public class RoomsView : UserControl, IThemable
             var btnFloor = new KButton
             {
                 Text = $"Tầng {floorNum}",
-                Size = new Size(78, 34),
+                Size = new Size(84, 36),
                 Font = UIHelper.GetFont(9f, FontStyle.Bold),
                 Style = (f == 1) ? KButtonStyle.Primary : KButtonStyle.Secondary,
-                Margin = new Padding(0, 0, 6, 0),
+                Margin = new Padding(0, 0, 8, 0),
                 Tag = floorNum
             };
             btnFloor.Click += async (s, e) =>
@@ -218,6 +221,10 @@ public class RoomsView : UserControl, IThemable
         var rooms = await _roomService.GetRoomsByBuildingAndFloorAsync(_selectedBuildingId, _selectedFloor);
         _roomMap.Rooms = rooms;
         _detailPanel.Controls.Clear();
+        if (rooms.Count > 0)
+        {
+            await LoadRoomDetailAsync(rooms[0].Id);
+        }
     }
 
     private async Task LoadRoomDetailAsync(int roomId)
@@ -225,8 +232,8 @@ public class RoomsView : UserControl, IThemable
         var detail = await _roomService.GetRoomDetailAsync(roomId);
         if (detail == null) return;
 
-        _detailCard.Title = $"Phòng {detail.Summary.MaPhong} ({detail.Summary.TenLoaiPhong})";
-        _detailCard.Subtitle = $"{detail.Summary.TenToa} · Tầng {detail.Summary.Tang} · {detail.Summary.SoNguoiDangO}/{detail.Summary.SucChua} người";
+        _detailCard.Title = $"Phòng {detail.Summary.MaPhong} · {detail.Summary.TenToa} Tầng {detail.Summary.Tang}";
+        _detailCard.Subtitle = $"{detail.Summary.TenLoaiPhong} · {detail.Summary.SoNguoiDangO}/{detail.Summary.SucChua} người";
 
         _detailPanel.Controls.Clear();
         int y = 10;
@@ -236,8 +243,8 @@ public class RoomsView : UserControl, IThemable
         {
             Text = detail.Summary.TrangThai == TrangThaiPhong.BaoTri ? "Bỏ bảo trì (Kích hoạt)" : "Báo bảo trì phòng",
             Style = detail.Summary.TrangThai == TrangThaiPhong.BaoTri ? KButtonStyle.Success : KButtonStyle.Danger,
-            Location = new Point(10, y),
-            Size = new Size(240, 34)
+            Location = new Point(4, y),
+            Size = new Size(276, 34)
         };
         btnToggleStatus.Click += async (s, e) =>
         {
@@ -278,8 +285,8 @@ public class RoomsView : UserControl, IThemable
             {
                 var residentBox = new Panel
                 {
-                    Location = new Point(10, y),
-                    Size = new Size(240, 50),
+                    Location = new Point(4, y),
+                    Size = new Size(276, 52),
                     BorderStyle = BorderStyle.FixedSingle,
                     Padding = new Padding(6)
                 };
@@ -289,14 +296,16 @@ public class RoomsView : UserControl, IThemable
                     Text = $"● {r.HoTen} ({r.MSSV})",
                     Font = UIHelper.GetFont(8.5f, FontStyle.Bold),
                     Dock = DockStyle.Top,
-                    Height = 18
+                    Height = 19,
+                    UseMnemonic = false
                 };
                 var lblSub = new Label
                 {
                     Text = $"{r.Khoa} · SĐT: {r.SoDienThoai}",
                     Font = UIHelper.GetFont(8f),
                     Dock = DockStyle.Bottom,
-                    Height = 16
+                    Height = 17,
+                    UseMnemonic = false
                 };
 
                 residentBox.Controls.Add(lblName);

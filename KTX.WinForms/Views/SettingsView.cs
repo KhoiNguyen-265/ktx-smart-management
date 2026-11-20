@@ -65,8 +65,9 @@ public class SettingsView : UserControl, IThemable
         var lblTitle = new Label
         {
             Text = "CẤU HÌNH HỆ THỐNG & TRỌNG SỐ THUẬT TOÁN",
-            Font = new Font("Segoe UI", 15F, FontStyle.Bold),
+            Font = new Font("Segoe UI", 14.5F, FontStyle.Bold),
             ForeColor = ThemeManager.Current.TextPrimary,
+            UseMnemonic = false,
             AutoSize = true
         };
         headerPanel.Controls.Add(lblTitle);
@@ -164,7 +165,7 @@ public class SettingsView : UserControl, IThemable
         {
             Text = "Lưu trọng số xếp phòng",
             Style = KButtonStyle.Primary,
-            Size = new Size(200, 40)
+            Size = new Size(235, 40)
         };
         btnSaveWeights.Click += async (s, e) => await SaveWeightsAsync();
 
@@ -261,7 +262,7 @@ public class SettingsView : UserControl, IThemable
         {
             Text = "Lưu cấu hình ngân hàng & VAT",
             Style = KButtonStyle.Primary,
-            Size = new Size(240, 40)
+            Size = new Size(275, 40)
         };
         btnSaveBank.Click += async (s, e) => await SaveBankAsync();
 
