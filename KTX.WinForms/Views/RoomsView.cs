@@ -47,8 +47,8 @@ public class RoomsView : UserControl, IThemable
 
         _cboBuilding = new KComboBox
         {
-            Location = new Point(110, 10),
-            Size = new Size(180, 36)
+            Location = new Point(128, 10),
+            Size = new Size(175, 36)
         };
         _cboBuilding.SelectedIndexChanged += async (s, e) =>
         {
@@ -63,15 +63,16 @@ public class RoomsView : UserControl, IThemable
         {
             Text = "Tầng:",
             Font = UIHelper.GetFont(10f, FontStyle.Bold),
-            Location = new Point(310, 16),
+            Location = new Point(322, 16),
             AutoSize = true
         };
 
         _panelFloors = new FlowLayoutPanel
         {
-            Location = new Point(360, 8),
-            Size = new Size(350, 42),
-            FlowDirection = FlowDirection.LeftToRight
+            Location = new Point(372, 8),
+            Size = new Size(440, 42),
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false
         };
 
         for (int f = 1; f <= 5; f++)
@@ -80,8 +81,10 @@ public class RoomsView : UserControl, IThemable
             var btnFloor = new KButton
             {
                 Text = $"Tầng {floorNum}",
-                Size = new Size(62, 34),
+                Size = new Size(78, 34),
+                Font = UIHelper.GetFont(9f, FontStyle.Bold),
                 Style = (f == 1) ? KButtonStyle.Primary : KButtonStyle.Secondary,
+                Margin = new Padding(0, 0, 6, 0),
                 Tag = floorNum
             };
             btnFloor.Click += async (s, e) =>
@@ -117,20 +120,17 @@ public class RoomsView : UserControl, IThemable
 
         topBar.Controls.AddRange(new Control[] { lblBuilding, _cboBuilding, lblFloor, _panelFloors });
 
-        // Center: Room Map (inside AutoScroll container) & Right Detail Card
-        var mainContainer = new SplitContainer
+        // Center: Room Map (inside AutoScroll container) & Right Detail Card (Fixed 340px right panel - never throws SplitterDistance!)
+        var mainContainer = new Panel
         {
-            Dock = DockStyle.Fill,
-            FixedPanel = FixedPanel.Panel2,
-            SplitterDistance = 760,
-            SplitterWidth = 14,
-            BorderStyle = BorderStyle.None
+            Dock = DockStyle.Fill
         };
 
         var mapScrollPanel = new Panel
         {
             Dock = DockStyle.Fill,
-            AutoScroll = true
+            AutoScroll = true,
+            Padding = new Padding(0, 0, 12, 0)
         };
 
         _roomMap = new KRoomMap
@@ -139,7 +139,13 @@ public class RoomsView : UserControl, IThemable
         };
         _roomMap.RoomClicked += async (room) => await LoadRoomDetailAsync(room.Id);
         mapScrollPanel.Controls.Add(_roomMap);
-        mainContainer.Panel1.Controls.Add(mapScrollPanel);
+
+        var rightHolder = new Panel
+        {
+            Dock = DockStyle.Right,
+            Width = 340,
+            Padding = new Padding(10, 0, 0, 0)
+        };
 
         // Detail Card on Right
         _detailCard = new KCard
@@ -157,8 +163,10 @@ public class RoomsView : UserControl, IThemable
             Padding = new Padding(0)
         };
         _detailCard.Controls.Add(_detailPanel);
+        rightHolder.Controls.Add(_detailCard);
 
-        mainContainer.Panel2.Controls.Add(_detailCard);
+        mainContainer.Controls.Add(mapScrollPanel);
+        mainContainer.Controls.Add(rightHolder);
 
         Controls.Add(mainContainer);
         Controls.Add(legendPanel);

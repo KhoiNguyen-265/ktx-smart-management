@@ -114,13 +114,13 @@ public class StudentHomeView : UserControl, IThemable
             Padding = new Padding(0, 6, 0, 0)
         };
 
-        _btnPrintPdf = new KButton { Text = "In Hợp đồng PDF", Style = KButtonStyle.Primary, Size = new Size(148, 36), Margin = new Padding(0, 0, 8, 0) };
+        _btnPrintPdf = new KButton { Text = "In Hợp đồng PDF", Style = KButtonStyle.Primary, Font = UIHelper.GetFont(8.8f, FontStyle.Bold), Size = new Size(148, 36), Margin = new Padding(0, 0, 8, 0) };
         _btnPrintPdf.Click += async (s, e) => await PrintContractPdfAsync();
 
-        _btnGoBills = new KButton { Text = "Thanh toán VietQR", Style = KButtonStyle.Secondary, Size = new Size(145, 36), Margin = new Padding(0, 0, 8, 0) };
+        _btnGoBills = new KButton { Text = "Thanh toán VietQR", Style = KButtonStyle.Secondary, Font = UIHelper.GetFont(8.8f, FontStyle.Bold), Size = new Size(152, 36), Margin = new Padding(0, 0, 8, 0) };
         _btnGoBills.Click += (s, e) => _onNavigate?.Invoke("StudentBills");
 
-        _btnGoMaintenance = new KButton { Text = "Báo hỏng", Style = KButtonStyle.Secondary, Size = new Size(96, 36), Margin = new Padding(0) };
+        _btnGoMaintenance = new KButton { Text = "Báo hỏng", Style = KButtonStyle.Secondary, Font = UIHelper.GetFont(8.8f, FontStyle.Bold), Size = new Size(96, 36), Margin = new Padding(0) };
         _btnGoMaintenance.Click += (s, e) => _onNavigate?.Invoke("StudentMaintenance");
 
         pnlActions.Controls.AddRange(new Control[] { _btnPrintPdf, _btnGoBills, _btnGoMaintenance });

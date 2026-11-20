@@ -50,6 +50,7 @@ public class StudentBillsView : UserControl, IThemable
             Font = UIHelper.GetFont(10f, FontStyle.Bold),
             Dock = DockStyle.Left,
             AutoSize = true,
+            UseMnemonic = false,
             TextAlign = ContentAlignment.MiddleLeft
         };
         _btnRefresh = new KButton

@@ -86,7 +86,7 @@ public class KCard : Panel, IThemable
             using var titleFont = UIHelper.GetFont(11.5f, FontStyle.Bold);
             var titleRect = new Rectangle(16, currentY, textWidth, 24);
             TextRenderer.DrawText(g, _title, titleFont, titleRect, theme.TextPrimary,
-                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix);
             currentY += 24;
         }
 
@@ -95,7 +95,7 @@ public class KCard : Panel, IThemable
             using var subFont = UIHelper.GetFont(8.8f, FontStyle.Regular);
             var subRect = new Rectangle(16, currentY, textWidth, 18);
             TextRenderer.DrawText(g, _subtitle, subFont, subRect, theme.TextSecondary,
-                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix);
         }
     }
 }

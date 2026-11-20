@@ -99,12 +99,12 @@ public class KStatCard : Control, IThemable
         // Draw Title
         using var titleFont = UIHelper.GetFont(9.2f, FontStyle.Regular);
         TextRenderer.DrawText(g, _title, titleFont, new Rectangle(textX, 12, textW, 20), theme.TextSecondary,
-            TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
+            TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix);
 
         // Draw Big Value
         using var valueFont = UIHelper.GetFont(17f, FontStyle.Bold);
         TextRenderer.DrawText(g, _value, valueFont, new Rectangle(textX, 34, textW, 34), theme.TextPrimary,
-            TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
+            TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix);
 
         // Draw Trend / Subtitle
         if (!string.IsNullOrEmpty(_trendText))
@@ -112,7 +112,7 @@ public class KStatCard : Control, IThemable
             using var trendFont = UIHelper.GetFont(8.3f, FontStyle.Bold);
             var trendColor = _isPositiveTrend ? theme.Success : theme.Danger;
             TextRenderer.DrawText(g, _trendText, trendFont, new Rectangle(textX, 72, textW, 20), trendColor,
-                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix);
         }
     }
 }

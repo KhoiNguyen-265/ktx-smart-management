@@ -57,9 +57,11 @@ public class MainForm : Form, IThemable
         _lblBreadcrumb = new Label
         {
             Text = "Trang chủ / Tổng quan",
-            Font = UIHelper.GetFont(12f, FontStyle.Bold),
-            Dock = DockStyle.Left,
-            AutoSize = true,
+            Font = UIHelper.GetFont(11.5f, FontStyle.Bold),
+            Dock = DockStyle.Fill,
+            AutoSize = false,
+            AutoEllipsis = true,
+            UseMnemonic = false,
             TextAlign = ContentAlignment.MiddleLeft
         };
 
@@ -76,7 +78,7 @@ public class MainForm : Form, IThemable
         {
             Text = "Tìm nhanh [Ctrl+K]",
             Style = KButtonStyle.Secondary,
-            Size = new Size(155, 36),
+            Size = new Size(178, 36),
             Margin = new Padding(0, 0, 10, 0)
         };
         _btnCommandPalette.Click += (s, e) => ShowCommandPalette();
@@ -118,8 +120,9 @@ public class MainForm : Form, IThemable
         _topbarRightPanel.Controls.Add(_lblUser);
         _topbarRightPanel.Controls.Add(_btnLogout);
 
-        _topbar.Controls.Add(_topbarRightPanel);
+        // WinForms docks highest Z-index (added last) first: Right panel first, then Fill breadcrumb fills remaining left space
         _topbar.Controls.Add(_lblBreadcrumb);
+        _topbar.Controls.Add(_topbarRightPanel);
 
         // 3. Content Panel
         _contentPanel = new Panel
