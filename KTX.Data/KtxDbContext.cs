@@ -59,6 +59,12 @@ public class KtxDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // --- Chuẩn hóa tên bảng SQL Server thuần tiếng Việt (bỏ hậu tố 's' tiếng Anh) ---
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            entityType.SetTableName(entityType.ClrType.Name);
+        }
+
         // --- Decimal precision configuration ---
         foreach (var property in modelBuilder.Model.GetEntityTypes()
                      .SelectMany(t => t.GetProperties())

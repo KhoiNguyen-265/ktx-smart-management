@@ -53,7 +53,7 @@ namespace KTX.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BacGias");
+                    b.ToTable("BacGia");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.CauHinh", b =>
@@ -82,7 +82,7 @@ namespace KTX.Data.Migrations
                     b.HasIndex("Khoa")
                         .IsUnique();
 
-                    b.ToTable("CauHinhs");
+                    b.ToTable("CauHinh");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.ChiSoDienNuoc", b =>
@@ -156,7 +156,7 @@ namespace KTX.Data.Migrations
                     b.HasIndex("PhongId", "Thang", "Nam")
                         .IsUnique();
 
-                    b.ToTable("ChiSoDienNuocs");
+                    b.ToTable("ChiSoDienNuoc");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.ChiTietHoaDon", b =>
@@ -193,7 +193,7 @@ namespace KTX.Data.Migrations
 
                     b.HasIndex("HoaDonDienNuocId");
 
-                    b.ToTable("ChiTietHoaDons");
+                    b.ToTable("ChiTietHoaDon");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.ChiTietXepPhong", b =>
@@ -228,7 +228,7 @@ namespace KTX.Data.Migrations
 
                     b.HasIndex("PhongId");
 
-                    b.ToTable("ChiTietXepPhongs");
+                    b.ToTable("ChiTietXepPhong");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.DienUuTien", b =>
@@ -248,7 +248,7 @@ namespace KTX.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DienUuTiens");
+                    b.ToTable("DienUuTien");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.DonDangKy", b =>
@@ -304,7 +304,7 @@ namespace KTX.Data.Migrations
                     b.HasIndex("DotId", "MSSV")
                         .IsUnique();
 
-                    b.ToTable("DonDangKys");
+                    b.ToTable("DonDangKy");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.DotDangKy", b =>
@@ -330,7 +330,7 @@ namespace KTX.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DotDangKys");
+                    b.ToTable("DotDangKy");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.GiaoDichNganHang", b =>
@@ -384,7 +384,7 @@ namespace KTX.Data.Migrations
                         .IsUnique()
                         .HasFilter("[MaGiaoDich] IS NOT NULL");
 
-                    b.ToTable("GiaoDichNganHangs");
+                    b.ToTable("GiaoDichNganHang");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.HoaDonDienNuoc", b =>
@@ -435,7 +435,7 @@ namespace KTX.Data.Migrations
 
                     b.HasIndex("PhongId");
 
-                    b.ToTable("HoaDonDienNuocs");
+                    b.ToTable("HoaDonDienNuoc");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.HopDong", b =>
@@ -487,7 +487,7 @@ namespace KTX.Data.Migrations
 
                     b.HasIndex("PhongId");
 
-                    b.ToTable("HopDongs");
+                    b.ToTable("HopDong");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.KhoanThuTienPhong", b =>
@@ -543,7 +543,7 @@ namespace KTX.Data.Migrations
                     b.HasIndex("MaThanhToan")
                         .IsUnique();
 
-                    b.ToTable("KhoanThuTienPhongs");
+                    b.ToTable("KhoanThuTienPhong");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.LichSuChuyenPhong", b =>
@@ -578,7 +578,7 @@ namespace KTX.Data.Migrations
 
                     b.HasIndex("TuPhongId");
 
-                    b.ToTable("LichSuChuyenPhongs");
+                    b.ToTable("LichSuChuyenPhong");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.LoaiPhong", b =>
@@ -606,7 +606,7 @@ namespace KTX.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("LoaiPhongs");
+                    b.ToTable("LoaiPhong");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.NguoiDung", b =>
@@ -649,7 +649,7 @@ namespace KTX.Data.Migrations
                     b.HasIndex("TenDangNhap")
                         .IsUnique();
 
-                    b.ToTable("NguoiDungs");
+                    b.ToTable("NguoiDung");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.NhatKy", b =>
@@ -684,7 +684,7 @@ namespace KTX.Data.Migrations
 
                     b.HasIndex("NguoiDungId");
 
-                    b.ToTable("NhatKys");
+                    b.ToTable("NhatKy");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.NhomDangKy", b =>
@@ -709,7 +709,7 @@ namespace KTX.Data.Migrations
                     b.HasIndex("MaNhom")
                         .IsUnique();
 
-                    b.ToTable("NhomDangKys");
+                    b.ToTable("NhomDangKy");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.PhienXepPhong", b =>
@@ -744,7 +744,7 @@ namespace KTX.Data.Migrations
 
                     b.HasIndex("DotDangKyId");
 
-                    b.ToTable("PhienXepPhongs");
+                    b.ToTable("PhienXepPhong");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.Phong", b =>
@@ -784,7 +784,7 @@ namespace KTX.Data.Migrations
                     b.HasIndex("ToaId", "MaPhong")
                         .IsUnique();
 
-                    b.ToTable("Phongs");
+                    b.ToTable("Phong");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.SinhVien", b =>
@@ -842,7 +842,7 @@ namespace KTX.Data.Migrations
 
                     b.HasIndex("TinhThanhId");
 
-                    b.ToTable("SinhViens");
+                    b.ToTable("SinhVien");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.TaiSanPhong", b =>
@@ -871,7 +871,7 @@ namespace KTX.Data.Migrations
 
                     b.HasIndex("PhongId");
 
-                    b.ToTable("TaiSanPhongs");
+                    b.ToTable("TaiSanPhong");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.ThanhToan", b =>
@@ -914,7 +914,7 @@ namespace KTX.Data.Migrations
 
                     b.HasIndex("NguoiThuId");
 
-                    b.ToTable("ThanhToans");
+                    b.ToTable("ThanhToan");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.TinhThanh", b =>
@@ -938,7 +938,7 @@ namespace KTX.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TinhThanhs");
+                    b.ToTable("TinhThanh");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.TinhThanhCu", b =>
@@ -961,7 +961,7 @@ namespace KTX.Data.Migrations
 
                     b.HasIndex("TinhThanhId");
 
-                    b.ToTable("TinhThanhCus");
+                    b.ToTable("TinhThanhCu");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.ToaNha", b =>
@@ -985,7 +985,7 @@ namespace KTX.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ToaNhas");
+                    b.ToTable("ToaNha");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.VaiTro", b =>
@@ -1002,7 +1002,7 @@ namespace KTX.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("VaiTros");
+                    b.ToTable("VaiTro");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.YeuCauSuaChua", b =>
@@ -1041,7 +1041,7 @@ namespace KTX.Data.Migrations
 
                     b.HasIndex("PhongId");
 
-                    b.ToTable("YeuCauSuaChuas");
+                    b.ToTable("YeuCauSuaChua");
                 });
 
             modelBuilder.Entity("KTX.Domain.Entities.ChiSoDienNuoc", b =>
